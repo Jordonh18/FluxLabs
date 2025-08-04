@@ -11,6 +11,9 @@ export function CreateLabForm() {
   const [templateId, setTemplateId] = useState('');
   const [duration, setDuration] = useState(1);
   const [templates, setTemplates] = useState([]);
+  const [filteredTemplates, setFilteredTemplates] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -18,6 +21,10 @@ export function CreateLabForm() {
   useEffect(() => {
     loadTemplates();
   }, []);
+
+  useEffect(() => {
+    filterTemplates();
+  }, [templates, searchTerm, selectedCategory]);
 
   const loadTemplates = async () => {
     try {
@@ -28,8 +35,59 @@ export function CreateLabForm() {
       }
     } catch (error) {
       console.error('Failed to load templates:', error);
+      setError('Failed to load templates. Please try again.');
     }
   };
+
+  const filterTemplates = () => {
+    let filtered = templates;
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(template => {
+        const name = template.name.toLowerCase();
+        switch (selectedCategory) {
+          case 'linux':
+            return name.includes('ubuntu') || name.includes('debian') || name.includes('centos') || 
+                   name.includes('alma') || name.includes('rocky') || name.includes('fedora') || 
+                   name.includes('alpine') || name.includes('arch') || name.includes('opensuse') ||
+                   name.includes('kali') || name.includes('amazon') || name.includes('oracle');
+          case 'development':
+            return name.includes('python') || name.includes('node') || name.includes('java') || 
+                   name.includes('go') || name.includes('rust') || name.includes('php') || 
+                   name.includes('ruby');
+          case 'database':
+            return name.includes('mysql') || name.includes('postgres') || name.includes('mongodb') || 
+                   name.includes('redis');
+          case 'webserver':
+            return name.includes('nginx') || name.includes('apache');
+          case 'tools':
+            return name.includes('docker') || name.includes('ansible') || name.includes('terraform');
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(template =>
+        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredTemplates(filtered);
+  };
+
+  const categories = [
+    { value: 'all', label: 'All Templates' },
+    { value: 'linux', label: 'Linux Distributions' },
+    { value: 'development', label: 'Development Environments' },
+    { value: 'database', label: 'Databases' },
+    { value: 'webserver', label: 'Web Servers' },
+    { value: 'tools', label: 'DevOps Tools' }
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,7 +110,7 @@ export function CreateLabForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle>Create New Lab</CardTitle>
       </CardHeader>
@@ -71,19 +129,54 @@ export function CreateLabForm() {
           
           <div className="space-y-2">
             <Label htmlFor="template">Template</Label>
+            
+            {/* Search and filter controls */}
+            <div className="space-y-2">
+              <Input
+                placeholder="Search templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+              
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                {categories.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Template selection */}
             <select
               id="template"
               value={templateId}
               onChange={(e) => setTemplateId(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              className="flex h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background overflow-y-auto"
+              size="6"
               required
             >
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name} - {template.description}
-                </option>
-              ))}
+              {filteredTemplates.length === 0 ? (
+                <option disabled>No templates found</option>
+              ) : (
+                filteredTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name} - {template.description}
+                  </option>
+                ))
+              )}
             </select>
+            
+            {filteredTemplates.length === 0 && templates.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                No templates match your search criteria. Try adjusting your search or category filter.
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
