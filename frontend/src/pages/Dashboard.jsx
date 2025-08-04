@@ -11,6 +11,8 @@ export function Dashboard() {
   const navigate = useNavigate();
   const userId = getCurrentUserId();
 
+  console.log('Dashboard - userId:', userId, 'type:', typeof userId);
+
   return (
     <Layout>
       <div className="space-y-6">

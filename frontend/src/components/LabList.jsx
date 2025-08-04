@@ -38,34 +38,56 @@ export function LabList({ userId }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadLabs();
-    // Set up real-time polling every 10 seconds
-    const interval = setInterval(loadLabs, 10000);
-    return () => clearInterval(interval);
+    if (userId) {
+      loadLabs();
+      // Set up real-time polling every 10 seconds
+      const interval = setInterval(loadLabs, 10000);
+      return () => clearInterval(interval);
+    }
   }, [userId]);
 
   const loadLabs = async () => {
+    if (!userId) {
+      console.warn('No userId provided to loadLabs');
+      setLabs([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       console.log('Loading labs for user:', userId);
       const response = await labAPI.getUserLabs(userId);
       console.log('API response:', response);
       
-      // Handle the API response format: {data: [...]}
-      const labsData = response.data?.data || response.data;
+      // Handle various API response formats
+      let labsData = null;
+      
+      // Try different possible response structures
+      if (response?.data?.data) {
+        labsData = response.data.data;
+      } else if (response?.data) {
+        labsData = response.data;
+      } else if (response) {
+        labsData = response;
+      }
+      
       console.log('Labs data:', labsData, 'Type:', typeof labsData, 'Is array:', Array.isArray(labsData));
       
-      // CRITICAL FIX: Ensure we always have an array
+      // CRITICAL FIX: Ensure we always set an array
       if (Array.isArray(labsData)) {
         setLabs(labsData);
         console.log('✅ Set labs array with', labsData.length, 'items');
+      } else if (labsData === null || labsData === undefined) {
+        console.log('📝 API returned null/undefined, setting empty array');
+        setLabs([]);
       } else {
-        console.warn('⚠️  API returned non-array data:', labsData);
+        console.warn('⚠️  API returned non-array data:', labsData, 'Setting empty array');
         setLabs([]);
       }
       setError('');
     } catch (err) {
       console.error('❌ Failed to load labs:', err);
-      setError('Failed to load labs');
+      setError(`Failed to load labs: ${err.message || 'Unknown error'}`);
       setLabs([]); // Ensure labs is always an array even on error
     } finally {
       setLoading(false);
@@ -73,9 +95,21 @@ export function LabList({ userId }) {
   };
 
   const handleQuickTerminate = async (labId) => {
+    if (!labId) {
+      console.error('No labId provided to handleQuickTerminate');
+      toast.error('Invalid lab ID');
+      return;
+    }
+
     try {
       await labAPI.deleteLab(labId);
-      setLabs(prevLabs => prevLabs.filter(lab => lab.id !== labId));
+      setLabs(prevLabs => {
+        if (!Array.isArray(prevLabs)) {
+          console.error('prevLabs is not an array in handleQuickTerminate:', prevLabs);
+          return [];
+        }
+        return prevLabs.filter(lab => lab.id !== labId);
+      });
       toast.success('Lab terminated successfully');
     } catch (err) {
       console.error('Failed to terminate lab:', err);
@@ -188,13 +222,26 @@ export function LabList({ userId }) {
     );
   }
 
+  // Additional safety check before rendering the labs
+  if (!Array.isArray(labs)) {
+    console.error('Labs is not an array:', labs, typeof labs);
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <div className="text-destructive mb-4">Invalid data format</div>
+          <Button onClick={loadLabs}>Reload</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Container className="h-5 w-5" />
           <span className="text-sm text-muted-foreground">
-            {labs.length} lab{labs.length !== 1 ? 's' : ''}
+            {Array.isArray(labs) ? labs.length : 0} lab{(Array.isArray(labs) ? labs.length : 0) !== 1 ? 's' : ''}
           </span>
         </div>
         <Button 
@@ -210,7 +257,7 @@ export function LabList({ userId }) {
       </div>
       
       <div className="grid gap-4">
-        {labs.map((lab) => (
+        {Array.isArray(labs) && labs.map((lab) => (
           <ContextMenu key={lab.id}>
             <ContextMenuTrigger>
               <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
