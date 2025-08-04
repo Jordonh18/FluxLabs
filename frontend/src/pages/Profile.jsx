@@ -2,33 +2,42 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { UserProfile } from '../components/UserProfile';
+import { Layout } from '../components/Layout';
 import { getCurrentUserId } from '../utils/auth';
+import { ArrowLeft, User } from 'lucide-react';
 
 export function Profile() {
   const navigate = useNavigate();
   const userId = getCurrentUserId();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">User Profile</h1>
-              <p className="text-gray-600">Manage your account settings</p>
-            </div>
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
-              Back to Dashboard
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              onClick={() => navigate('/dashboard')} 
+              variant="outline" 
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <User className="h-8 w-8" />
+                User Profile
+              </h1>
+              <p className="text-muted-foreground">
+                Manage your account settings and preferences
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <UserProfile userId={userId} />
-        </div>
+        <UserProfile userId={userId} />
       </div>
-    </div>
+    </Layout>
   );
 }

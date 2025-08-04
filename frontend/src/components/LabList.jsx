@@ -2,7 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from './ui/context-menu';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from './ui/dropdown-menu';
+import { 
+  MoreHorizontal, 
+  Eye, 
+  Clock, 
+  Trash2, 
+  RefreshCw,
+  Plus,
+  Container,
+  Calendar,
+  Timer,
+  AlertTriangle
+} from 'lucide-react';
 import { labAPI } from '../services/api';
+import { toast } from 'sonner';
 
 export function LabList({ userId }) {
   const [labs, setLabs] = useState([]);
@@ -30,39 +59,46 @@ export function LabList({ userId }) {
   };
 
   const handleQuickTerminate = async (labId) => {
-    if (!confirm('Are you sure you want to terminate this lab?')) {
-      return;
-    }
-
     try {
       await labAPI.terminateLab(labId);
-      // Immediately update the UI by removing the terminated lab
       setLabs(prevLabs => prevLabs.filter(lab => lab.id !== labId));
+      toast.success('Lab terminated successfully');
     } catch (err) {
       console.error('Failed to terminate lab:', err);
-      alert('Failed to terminate lab');
+      toast.error('Failed to terminate lab');
     }
   };
 
   const handleQuickExtend = async (labId, hours = 1) => {
     try {
       await labAPI.extendLab(labId, hours);
-      // Refresh the labs to get updated expiry times
       loadLabs();
+      toast.success(`Lab extended by ${hours} hour${hours > 1 ? 's' : ''}`);
     } catch (err) {
       console.error('Failed to extend lab:', err);
-      alert('Failed to extend lab');
+      toast.error('Failed to extend lab');
+    }
+  };
+
+  const getStatusVariant = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'running': return 'default';
+      case 'stopped': return 'secondary';
+      case 'creating': return 'outline';
+      case 'error': return 'destructive';
+      case 'expired': return 'secondary';
+      default: return 'outline';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'running': return 'text-green-600 bg-green-100';
-      case 'stopped': return 'text-yellow-600 bg-yellow-100';
-      case 'creating': return 'text-blue-600 bg-blue-100';
-      case 'error': return 'text-red-600 bg-red-100';
-      case 'expired': return 'text-gray-600 bg-gray-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'running': return 'text-green-600';
+      case 'stopped': return 'text-yellow-600';
+      case 'creating': return 'text-blue-600';
+      case 'error': return 'text-red-600';
+      case 'expired': return 'text-gray-600';
+      default: return 'text-gray-600';
     }
   };
 
@@ -94,11 +130,10 @@ export function LabList({ userId }) {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <div className="text-lg">Loading labs...</div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-8">
+        <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+        <span>Loading labs...</span>
+      </div>
     );
   }
 
@@ -106,7 +141,8 @@ export function LabList({ userId }) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="text-red-600 mb-4">{error}</div>
+          <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-4" />
+          <div className="text-destructive mb-4">{error}</div>
           <Button onClick={loadLabs}>Retry</Button>
         </CardContent>
       </Card>
@@ -116,10 +152,17 @@ export function LabList({ userId }) {
   if (labs.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
-          <div className="text-gray-500 mb-4">No labs found</div>
+        <CardContent className="p-8 text-center">
+          <Container className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No labs found</h3>
+          <p className="text-muted-foreground mb-4">
+            Get started by creating your first lab environment
+          </p>
           <Link to="/create-lab">
-            <Button>Create Your First Lab</Button>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create Your First Lab
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -127,83 +170,118 @@ export function LabList({ userId }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Your Labs</h2>
-        <Button onClick={loadLabs} variant="outline" size="sm">
+        <div className="flex items-center gap-2">
+          <Container className="h-5 w-5" />
+          <span className="text-sm text-muted-foreground">
+            {labs.length} lab{labs.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+        <Button onClick={loadLabs} variant="outline" size="sm" className="flex items-center gap-2">
+          <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
       </div>
       
-      {labs.map((lab) => (
-        <Card key={lab.id} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-medium text-gray-900">{lab.name}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lab.status)}`}>
-                    {lab.status?.toUpperCase()}
-                  </span>
-                  {isExpiringSoon(lab.expires_at) && (
-                    <span className="px-2 py-1 rounded-full text-xs font-medium text-orange-600 bg-orange-100">
-                      EXPIRING SOON
-                    </span>
-                  )}
-                </div>
-                
-                <div className="text-sm text-gray-600 space-y-1">
-                  <div>
-                    <span className="font-medium">Expires:</span> {new Date(lab.expires_at).toLocaleString()}
+      <div className="grid gap-4">
+        {labs.map((lab) => (
+          <Card key={lab.id} className="hover:shadow-md transition-all duration-200 border-2 hover:border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold">{lab.name}</h3>
+                    <Badge variant={getStatusVariant(lab.status)} className={getStatusColor(lab.status)}>
+                      {lab.status?.toUpperCase()}
+                    </Badge>
+                    {isExpiringSoon(lab.expires_at) && (
+                      <Badge variant="outline" className="text-orange-600 border-orange-200">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        EXPIRING SOON
+                      </Badge>
+                    )}
                   </div>
-                  <div>
-                    <span className="font-medium">Time remaining:</span> 
-                    <span className={isExpiringSoon(lab.expires_at) ? 'text-orange-600 font-medium' : ''}>
-                      {formatTimeRemaining(lab.expires_at)}
-                    </span>
-                  </div>
-                  {lab.container_id && (
-                    <div>
-                      <span className="font-medium">Container ID:</span> 
-                      <span className="font-mono text-xs">{lab.container_id}</span>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium">Expires</div>
+                        <div className="text-muted-foreground">
+                          {new Date(lab.expires_at).toLocaleString()}
+                        </div>
+                      </div>
                     </div>
-                  )}
+                    
+                    <div className="flex items-center gap-2">
+                      <Timer className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium">Time remaining</div>
+                        <div className={`${isExpiringSoon(lab.expires_at) ? 'text-orange-600 font-medium' : 'text-muted-foreground'}`}>
+                          {formatTimeRemaining(lab.expires_at)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {lab.container_id && (
+                      <div className="flex items-center gap-2">
+                        <Container className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <div className="font-medium">Container ID</div>
+                          <div className="text-muted-foreground font-mono text-xs">
+                            {lab.container_id.substring(0, 12)}...
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Link to={`/lab/${lab.id}`}>
+                    <Button size="sm" className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      View Details
+                    </Button>
+                  </Link>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleQuickExtend(lab.id, 1)} disabled={lab.status === 'expired' || lab.status === 'error'}>
+                        <Clock className="mr-2 h-4 w-4" />
+                        Extend +1h
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleQuickExtend(lab.id, 2)} disabled={lab.status === 'expired' || lab.status === 'error'}>
+                        <Clock className="mr-2 h-4 w-4" />
+                        Extend +2h
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleQuickExtend(lab.id, 6)} disabled={lab.status === 'expired' || lab.status === 'error'}>
+                        <Clock className="mr-2 h-4 w-4" />
+                        Extend +6h
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleQuickTerminate(lab.id)} 
+                        className="text-destructive"
+                        disabled={lab.status === 'expired'}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Terminate
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
-              
-              <div className="flex flex-col gap-2">
-                <Link to={`/lab/${lab.id}`}>
-                  <Button size="sm" className="w-full">
-                    View Details
-                  </Button>
-                </Link>
-                
-                {lab.status !== 'expired' && lab.status !== 'error' && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleQuickExtend(lab.id)}
-                    className="w-full"
-                  >
-                    Extend +1h
-                  </Button>
-                )}
-                
-                {lab.status !== 'expired' && (
-                  <Button 
-                    size="sm" 
-                    variant="destructive"
-                    onClick={() => handleQuickTerminate(lab.id)}
-                    className="w-full"
-                  >
-                    Terminate
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

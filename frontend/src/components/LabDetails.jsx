@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { Alert, AlertDescription } from './ui/alert-dialog';
+import { Alert, AlertDescription } from './ui/alert';
 import { labAPI, containerAPI } from '../services/api';
 
 export function LabDetails() {

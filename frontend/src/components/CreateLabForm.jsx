@@ -4,8 +4,20 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Separator } from './ui/separator';
+import { 
+  Search, 
+  Clock, 
+  Container, 
+  CheckCircle, 
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
 import { labAPI } from '../services/api';
 import { getCurrentUserId } from '../utils/auth';
+import { toast } from 'sonner';
 
 export function CreateLabForm() {
   const [name, setName] = useState('');
@@ -110,17 +122,17 @@ export function CreateLabForm() {
     
     // Validate form
     if (!name.trim()) {
-      setError('Please enter a lab name');
+      toast.error('Please enter a lab name');
       return;
     }
     
     if (!templateId) {
-      setError('Please select a template');
+      toast.error('Please select a template');
       return;
     }
     
     if (!duration || duration < 1 || duration > 24) {
-      setError('Please enter a valid duration between 1 and 24 hours');
+      toast.error('Please enter a valid duration between 1 and 24 hours');
       return;
     }
     
@@ -128,6 +140,8 @@ export function CreateLabForm() {
     setError('');
 
     try {
+      toast.loading('Creating lab...', { id: 'create-lab' });
+      
       const response = await labAPI.createLab({
         name,
         template_id: parseInt(templateId),
@@ -135,9 +149,12 @@ export function CreateLabForm() {
         user_id: getCurrentUserId()
       });
       
+      toast.success('Lab created successfully!', { id: 'create-lab' });
+      
       // Redirect to the new lab's details page
       navigate(`/lab/${response.data.id}`);
     } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to create lab', { id: 'create-lab' });
       setError(err.response?.data?.detail || 'Failed to create lab');
     } finally {
       setLoading(false);
@@ -145,99 +162,137 @@ export function CreateLabForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Create New Lab</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Container className="h-6 w-6" />
+          Create New Lab
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Lab Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="name" className="text-base font-medium">
+              Lab Name <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter lab name"
+              placeholder="Enter a descriptive name for your lab"
               required
-              className={!name.trim() && name !== '' ? 'border-destructive' : ''}
+              className={`text-base ${!name.trim() && name !== '' ? 'border-destructive' : ''}`}
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="template">Template <span className="text-destructive">*</span></Label>
+          <Separator />
+          
+          <div className="space-y-4">
+            <Label className="text-base font-medium">
+              Template <span className="text-destructive">*</span>
+            </Label>
             
             {/* Search and filter controls */}
-            <div className="space-y-2">
-              <Input
-                placeholder="Search templates by name or description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search templates by name or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               
               <div className="flex items-center justify-between">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  {categories.map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-[240px]">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
                 {filteredTemplates.length > 0 && (
-                  <span className="ml-2 text-xs text-muted-foreground whitespace-nowrap">
+                  <Badge variant="outline" className="ml-2">
                     {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
-                  </span>
+                  </Badge>
                 )}
               </div>
             </div>
             
             {/* Template selection */}
-            <div className="space-y-2 border rounded-md p-3 max-h-64 overflow-y-auto bg-background">
+            <div className="border rounded-lg p-4 max-h-80 overflow-y-auto bg-card">
               {filteredTemplates.length === 0 ? (
-                <div className="text-sm text-muted-foreground p-2">No templates found</div>
+                <div className="text-center py-8">
+                  <Container className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No templates found</p>
+                </div>
               ) : (
-                filteredTemplates.map((template) => (
-                  <label 
-                    key={template.id} 
-                    className={`flex items-start space-x-3 p-3 rounded-md border cursor-pointer transition-colors hover:bg-accent ${
-                      templateId === template.id.toString() ? 'bg-accent border-primary' : 'border-border'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="template"
-                      value={template.id}
-                      checked={templateId === template.id.toString()}
-                      onChange={(e) => handleTemplateChange(e.target.value)}
-                      className="mt-1"
-                      required
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{template.name}</div>
-                      <div className="text-xs text-muted-foreground">{template.description}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Image: <code className="bg-muted px-1 rounded">{template.image}</code>
-                        <span className="ml-2">{template.default_duration_hours}h default</span>
+                <div className="space-y-3">
+                  {filteredTemplates.map((template) => (
+                    <label 
+                      key={template.id} 
+                      className={`flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-sm ${
+                        templateId === template.id.toString() 
+                          ? 'bg-primary/5 border-primary ring-2 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-center mt-1">
+                        {templateId === template.id.toString() ? (
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                        ) : (
+                          <div className="h-4 w-4 border border-muted-foreground rounded-full" />
+                        )}
                       </div>
-                    </div>
-                  </label>
-                ))
+                      <input
+                        type="radio"
+                        name="template"
+                        value={template.id}
+                        checked={templateId === template.id.toString()}
+                        onChange={(e) => handleTemplateChange(e.target.value)}
+                        className="sr-only"
+                        required
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base mb-1">{template.name}</div>
+                        <div className="text-sm text-muted-foreground mb-2">{template.description}</div>
+                        <div className="flex items-center gap-3 text-xs">
+                          <Badge variant="outline" className="font-mono">
+                            {template.image}
+                          </Badge>
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {template.default_duration_hours}h default
+                          </Badge>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               )}
             </div>
             
             {filteredTemplates.length === 0 && templates.length > 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
                 No templates match your search criteria. Try adjusting your search or category filter.
               </p>
             )}
           </div>
           
+          <Separator />
+          
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (hours) <span className="text-destructive">*</span></Label>
+            <Label htmlFor="duration" className="text-base font-medium">
+              Duration (hours) <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="duration"
               type="number"
@@ -246,29 +301,44 @@ export function CreateLabForm() {
               value={duration}
               onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
               required
-              className={duration < 1 || duration > 24 ? 'border-destructive' : ''}
+              className={`text-base ${duration < 1 || duration > 24 ? 'border-destructive' : ''}`}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="h-3 w-3" />
               Duration automatically set based on selected template. Choose between 1 and 24 hours.
             </p>
           </div>
           
           {error && (
-            <div className="text-sm text-destructive">{error}</div>
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
           )}
           
-          <div className="flex space-x-2">
+          <div className="flex space-x-3 pt-4">
             <Button 
               type="submit" 
               disabled={loading || !isFormValid}
-              className={!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}
+              className={`flex items-center gap-2 ${!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Creating...' : 'Create Lab'}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Container className="h-4 w-4" />
+                  Create Lab
+                </>
+              )}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => navigate('/dashboard')}
+              disabled={loading}
             >
               Cancel
             </Button>

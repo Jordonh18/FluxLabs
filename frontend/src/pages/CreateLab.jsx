@@ -2,31 +2,44 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { CreateLabForm } from '../components/CreateLabForm';
+import { Layout } from '../components/Layout';
+import { ArrowLeft, Plus } from 'lucide-react';
 
 export function CreateLab() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Create New Lab</h1>
-              <p className="text-gray-600">Set up a new container environment</p>
-            </div>
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
-              Back to Dashboard
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              onClick={() => navigate('/dashboard')} 
+              variant="outline" 
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <Plus className="h-8 w-8" />
+                Create New Lab
+              </h1>
+              <p className="text-muted-foreground">
+                Set up a new container environment for your project
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <div className="w-full max-w-2xl">
+            <CreateLabForm />
           </div>
         </div>
       </div>
-
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0 flex justify-center">
-          <CreateLabForm />
-        </div>
-      </div>
-    </div>
+    </Layout>
   );
 }
