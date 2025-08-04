@@ -81,13 +81,33 @@ export function CreateLabForm() {
   };
 
   const categories = [
-    { value: 'all', label: 'All Templates' },
-    { value: 'linux', label: 'Linux Distributions' },
-    { value: 'development', label: 'Development Environments' },
-    { value: 'database', label: 'Databases' },
-    { value: 'webserver', label: 'Web Servers' },
-    { value: 'tools', label: 'DevOps Tools' }
+    { value: 'all', label: '🗂️ All Templates' },
+    { value: 'linux', label: '🐧 Linux Distributions' },
+    { value: 'development', label: '💻 Development Environments' },
+    { value: 'database', label: '🗄️ Databases' },
+    { value: 'webserver', label: '🌐 Web Servers' },
+    { value: 'tools', label: '🛠️ DevOps Tools' }
   ];
+
+  const getTemplateIcon = (templateName) => {
+    const name = templateName.toLowerCase();
+    if (name.includes('ubuntu') || name.includes('debian') || name.includes('linux')) return '🐧';
+    if (name.includes('python')) return '🐍';
+    if (name.includes('node') || name.includes('javascript')) return '🟢';
+    if (name.includes('java')) return '☕';
+    if (name.includes('go')) return '🐹';
+    if (name.includes('rust')) return '🦀';
+    if (name.includes('php')) return '🐘';
+    if (name.includes('ruby')) return '💎';
+    if (name.includes('mysql') || name.includes('postgres') || name.includes('mongo')) return '🗄️';
+    if (name.includes('redis')) return '🔴';
+    if (name.includes('nginx') || name.includes('apache')) return '🌐';
+    if (name.includes('docker')) return '🐳';
+    if (name.includes('ansible')) return '📋';
+    if (name.includes('terraform')) return '🏗️';
+    if (name.includes('kali')) return '🔐';
+    return '📦';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,44 +153,68 @@ export function CreateLabForm() {
             {/* Search and filter controls */}
             <div className="space-y-2">
               <Input
-                placeholder="Search templates..."
+                placeholder="🔍 Search templates by name or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
               />
               
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              >
-                {categories.map((category) => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                >
+                  {categories.map((category) => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+                {filteredTemplates.length > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground whitespace-nowrap">
+                    {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
             </div>
             
             {/* Template selection */}
-            <select
-              id="template"
-              value={templateId}
-              onChange={(e) => setTemplateId(e.target.value)}
-              className="flex h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background overflow-y-auto"
-              size="6"
-              required
-            >
+            <div className="space-y-2 border rounded-md p-3 max-h-64 overflow-y-auto bg-background">
               {filteredTemplates.length === 0 ? (
-                <option disabled>No templates found</option>
+                <div className="text-sm text-muted-foreground p-2">No templates found</div>
               ) : (
                 filteredTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name} - {template.description}
-                  </option>
+                  <label 
+                    key={template.id} 
+                    className={`flex items-start space-x-3 p-3 rounded-md border cursor-pointer transition-colors hover:bg-accent ${
+                      templateId === template.id.toString() ? 'bg-accent border-primary' : 'border-border'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="template"
+                      value={template.id}
+                      checked={templateId === template.id.toString()}
+                      onChange={(e) => setTemplateId(e.target.value)}
+                      className="mt-1"
+                      required
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        <span>{getTemplateIcon(template.name)}</span>
+                        {template.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{template.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Image: <code className="bg-muted px-1 rounded">{template.image}</code>
+                        <span className="ml-2">⏱️ {template.default_duration_hours}h default</span>
+                      </div>
+                    </div>
+                  </label>
                 ))
               )}
-            </select>
+            </div>
             
             {filteredTemplates.length === 0 && templates.length > 0 && (
               <p className="text-sm text-muted-foreground">

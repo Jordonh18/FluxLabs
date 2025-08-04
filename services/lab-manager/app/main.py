@@ -110,10 +110,20 @@ async def startup_event():
     # Start the scheduler
     scheduler.start()
     
-    # Add default templates if none exist
+    # Add default templates if none exist, or update if we have the old basic set
     db = next(get_database())
     
-    if db.query(LabTemplate).count() == 0:
+    # Check if we have the old basic template set (3 templates)
+    template_count = db.query(LabTemplate).count()
+    has_old_templates = (template_count == 3 and 
+                        db.query(LabTemplate).filter(LabTemplate.name.in_(["Ubuntu Lab", "Python Lab", "Node.js Lab"])).count() == 3)
+    
+    if template_count == 0 or has_old_templates:
+        # Clear old templates if they exist
+        if has_old_templates:
+            db.query(LabTemplate).delete()
+            db.commit()
+            
         default_templates = [
             # Popular Linux Distributions
             LabTemplate(name="Ubuntu 22.04", description="Ubuntu 22.04 LTS (Jammy Jellyfish)", image="ubuntu:22.04", default_duration_hours=2),
