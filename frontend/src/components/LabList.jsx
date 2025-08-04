@@ -21,7 +21,6 @@ import {
 import { 
   MoreHorizontal, 
   Eye, 
-  Clock, 
   Trash2, 
   RefreshCw,
   Plus,
@@ -30,7 +29,7 @@ import {
   Timer,
   AlertTriangle
 } from 'lucide-react';
-import { labAPI } from '../services/api';
+import { labAPI } from '../services/dockerApi';
 import { toast } from 'sonner';
 
 export function LabList({ userId }) {
@@ -66,17 +65,6 @@ export function LabList({ userId }) {
     } catch (err) {
       console.error('Failed to terminate lab:', err);
       toast.error('Failed to terminate lab');
-    }
-  };
-
-  const handleQuickExtend = async (labId, hours = 1) => {
-    try {
-      await labAPI.extendLab(labId, hours);
-      loadLabs();
-      toast.success(`Lab extended by ${hours} hour${hours > 1 ? 's' : ''}`);
-    } catch (err) {
-      console.error('Failed to extend lab:', err);
-      toast.error('Failed to extend lab');
     }
   };
 
@@ -297,28 +285,6 @@ export function LabList({ userId }) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem 
-                        onClick={() => handleQuickExtend(lab.id, 1)} 
-                        disabled={!lab.is_docker_active || lab.status === 'expired' || lab.status === 'error'}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Extend +1h
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleQuickExtend(lab.id, 2)} 
-                        disabled={!lab.is_docker_active || lab.status === 'expired' || lab.status === 'error'}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Extend +2h
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleQuickExtend(lab.id, 6)} 
-                        disabled={!lab.is_docker_active || lab.status === 'expired' || lab.status === 'error'}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Extend +6h
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
                         onClick={() => handleQuickTerminate(lab.id)} 
                         className="text-destructive"
                         disabled={!lab.is_docker_active}
@@ -334,17 +300,11 @@ export function LabList({ userId }) {
           </Card>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                            <ContextMenuItem onClick={() => window.open(`/lab/${lab.container_id || lab.id}`, '_blank')}>
+              <ContextMenuItem onClick={() => window.open(`/lab/${lab.container_id || lab.id}`, '_blank')}>
                 <Eye className="mr-2 h-4 w-4" />
                 View in New Tab
               </ContextMenuItem>
               <ContextMenuSeparator />
-              {lab.is_docker_active && lab.status !== 'expired' && lab.status !== 'error' && (
-                <ContextMenuItem onClick={() => handleQuickExtend(lab.id)}>
-                  <Clock className="mr-2 h-4 w-4" />
-                  Extend +1h
-                </ContextMenuItem>
-              )}
               {lab.container_id && (
                 <ContextMenuItem onClick={() => navigator.clipboard.writeText(lab.container_id || '')}>
                   <Container className="mr-2 h-4 w-4" />

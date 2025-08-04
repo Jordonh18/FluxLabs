@@ -22,7 +22,7 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import { labAPI } from '../services/api';
+import { labAPI } from '../services/dockerApi';
 import { getCurrentUserId } from '../utils/auth';
 import { toast } from 'sonner';
 

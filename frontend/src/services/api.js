@@ -73,169 +73,131 @@ export const dockerAPI = {
   execCommand: (containerId, command) => api.post(`/docker/containers/${containerId}/exec`, { command }),
 };
 
-// Enhanced lab API that combines database and Docker data
+// Pure Docker-based lab API - NO DATABASE DEPENDENCIES
 export const labAPI = {
-  // Get user labs with real-time Docker status
+  // Get user labs directly from Docker containers only
   getUserLabs: async (userId) => {
     try {
-      // Get both database labs and Docker containers
-      const [dbLabs, dockerContainers] = await Promise.all([
-        api.get(`/labs/user/${userId}`),
-        dockerAPI.getLabContainers().catch(() => ({ data: [] })) // Graceful fallback
-      ]);
+      // Get ONLY Docker containers with FluxLabs labels
+      const dockerContainers = await dockerAPI.getLabContainers();
       
-      // Create a map of container IDs to Docker data
-      const containerMap = new Map();
-      dockerContainers.data.forEach(container => {
-        containerMap.set(container.Id, container);
-      });
-      
-      // Merge database and Docker data, prioritizing Docker reality
-      const mergedLabs = dbLabs.data.map(lab => {
-        const dockerContainer = containerMap.get(lab.container_id);
+      // Transform Docker containers into lab format
+      const labs = dockerContainers.data.map(container => {
+        const containerName = container.Names?.[0]?.replace('/', '') || 'Unknown Lab';
+        const containerLabels = container.Labels || {};
         
-        if (dockerContainer) {
-          // Container exists in Docker - use Docker status
-          return {
-            ...lab,
-            status: dockerContainer.State.toLowerCase(),
-            docker_status: dockerContainer.Status,
-            actual_status: dockerContainer.State.toLowerCase(),
-            ports: dockerContainer.Ports || [],
-            created_at: dockerContainer.Created,
-            started_at: dockerContainer.State === 'running' ? dockerContainer.StartedAt : null,
-            is_docker_active: true
-          };
-        } else {
-          // Container doesn't exist in Docker anymore
-          return {
-            ...lab,
-            status: 'terminated',
-            actual_status: 'not_found',
-            is_docker_active: false,
-            docker_status: 'Container not found'
-          };
-        }
+        return {
+          id: container.Id, // Use container ID as lab ID
+          container_id: container.Id,
+          name: containerLabels['fluxlabs.name'] || containerName,
+          template_id: containerLabels['fluxlabs.template'] || 'unknown',
+          user_id: containerLabels['fluxlabs.user_id'] || userId,
+          status: container.State.toLowerCase(),
+          docker_status: container.Status,
+          actual_status: container.State.toLowerCase(),
+          ports: container.Ports || [],
+          created_at: container.Created,
+          started_at: container.State === 'running' ? container.State.StartedAt : null,
+          is_docker_active: true,
+          image: container.Image,
+          // Generate display info from container data
+          display_name: containerLabels['fluxlabs.display_name'] || containerName,
+          description: containerLabels['fluxlabs.description'] || 'Docker Container Lab',
+          created_by: containerLabels['fluxlabs.created_by'] || 'Unknown',
+          duration_hours: parseInt(containerLabels['fluxlabs.duration_hours']) || 24,
+          expires_at: containerLabels['fluxlabs.expires_at'] || null
+        };
       });
       
-      // Filter out terminated labs that are older than 1 hour and clean them up
-      const activeOrRecentLabs = [];
-      const staleLabIds = [];
+      // Filter by user ID if provided (from container labels)
+      const userLabs = userId ? labs.filter(lab => 
+        lab.user_id === userId || !lab.user_id // Include containers without user_id
+      ) : labs;
       
-      mergedLabs.forEach(lab => {
-        if (lab.is_docker_active) {
-          activeOrRecentLabs.push(lab);
-        } else {
-          // Check if lab is stale (container not found and older than 1 hour)
-          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-          const updatedAt = new Date(lab.updated_at || lab.created_at);
-          
-          if (updatedAt > oneHourAgo) {
-            activeOrRecentLabs.push(lab);
-          } else {
-            staleLabIds.push(lab.id);
-          }
+      return { data: userLabs };
+    } catch (error) {
+      console.error('Error fetching Docker containers:', error);
+      return { data: [] }; // Return empty array instead of falling back to database
+    }
+  },
+
+  // Get specific lab from Docker container only
+  getLab: async (containerId) => {
+    try {
+      const dockerContainer = await dockerAPI.getContainer(containerId);
+      const container = dockerContainer.data;
+      const containerLabels = container.Config?.Labels || {};
+      
+      return {
+        data: {
+          id: container.Id,
+          container_id: container.Id,
+          name: containerLabels['fluxlabs.name'] || container.Name?.replace('/', '') || 'Unknown Lab',
+          template_id: containerLabels['fluxlabs.template'] || 'unknown',
+          user_id: containerLabels['fluxlabs.user_id'] || 'unknown',
+          status: container.State?.Status?.toLowerCase() || 'unknown',
+          docker_status: container.State?.Status || 'Unknown',
+          actual_status: container.State?.Status?.toLowerCase() || 'unknown',
+          ports: container.NetworkSettings?.Ports || {},
+          created_at: container.Created,
+          started_at: container.State?.StartedAt,
+          is_docker_active: true,
+          ssh_info: getSshInfo(container),
+          image: container.Config?.Image,
+          display_name: containerLabels['fluxlabs.display_name'] || container.Name?.replace('/', ''),
+          description: containerLabels['fluxlabs.description'] || 'Docker Container Lab',
+          created_by: containerLabels['fluxlabs.created_by'] || 'Unknown'
+        }
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Create lab - now creates Docker container directly (no database)
+  createLab: async (data) => {
+    try {
+      // Create Docker container with FluxLabs labels
+      return await api.post('/docker/containers/create', {
+        image: data.image || 'ubuntu:latest',
+        name: data.name,
+        labels: {
+          'fluxlabs.name': data.name,
+          'fluxlabs.template': data.template_id || 'custom',
+          'fluxlabs.user_id': data.user_id,
+          'fluxlabs.display_name': data.display_name || data.name,
+          'fluxlabs.description': data.description || 'Docker Container Lab',
+          'fluxlabs.created_by': data.created_by || 'FluxLabs',
+          'fluxlabs.duration_hours': (data.duration_hours || 24).toString(),
+          'fluxlabs.created_at': new Date().toISOString(),
+          'fluxlabs.expires_at': new Date(Date.now() + (data.duration_hours || 24) * 60 * 60 * 1000).toISOString()
         }
       });
-      
-      // Clean up stale labs from database (fire and forget)
-      if (staleLabIds.length > 0) {
-        this.cleanupStaleLabs(staleLabIds).catch(err => 
-          console.warn('Failed to cleanup stale labs:', err)
-        );
-      }
-      
-      return { data: activeOrRecentLabs };
-    } catch (error) {
-      console.error('Error fetching labs with Docker status:', error);
-      // Fallback to database only
-      return api.get(`/labs/user/${userId}`);
-    }
-  },
-
-  // Get specific lab with Docker status
-  getLab: async (labId) => {
-    try {
-      const lab = await api.get(`/labs/${labId}`);
-      
-      if (lab.data.container_id) {
-        try {
-          const dockerContainer = await dockerAPI.getContainer(lab.data.container_id);
-          return {
-            data: {
-              ...lab.data,
-              status: dockerContainer.data.State.Status.toLowerCase(),
-              docker_status: dockerContainer.data.Status,
-              actual_status: dockerContainer.data.State.Status.toLowerCase(),
-              ports: dockerContainer.data.NetworkSettings?.Ports || {},
-              is_docker_active: true,
-              ssh_info: getSshInfo(dockerContainer.data)
-            }
-          };
-        } catch (dockerError) {
-          console.warn('Container not found in Docker:', dockerError);
-          return {
-            data: {
-              ...lab.data,
-              status: 'terminated',
-              actual_status: 'not_found',
-              is_docker_active: false,
-              docker_status: 'Container not found'
-            }
-          };
-        }
-      }
-      
-      return lab;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Create lab
-  createLab: (data) => api.post(`/labs?user_id=${data.user_id}`, {
-    name: data.name,
-    template_id: data.template_id,
-    duration_hours: data.duration_hours
-  }),
-  
-  // Terminate lab (both database and Docker)
-  terminateLab: async (labId) => {
-    try {
-      // Get lab details first
-      const lab = await api.get(`/labs/${labId}`);
-      
-      // Remove from Docker if container exists
-      if (lab.data.container_id) {
-        try {
-          await dockerAPI.removeContainer(lab.data.container_id);
-        } catch (dockerError) {
-          console.warn('Container already removed or not found:', dockerError);
-        }
-      }
-      
-      // Update database
-      return api.delete(`/labs/${labId}`);
     } catch (error) {
       throw error;
     }
   },
   
-  // Extend lab time
-  extendLab: (labId, hours) => api.put(`/labs/${labId}/extend`, { hours }),
-
-  // Clean up stale labs from database
-  cleanupStaleLabs: async (labIds) => {
+  // Terminate lab - Docker only
+  terminateLab: async (containerId) => {
     try {
-      return await api.post('/labs/cleanup', { lab_ids: labIds });
+      return await dockerAPI.removeContainer(containerId);
     } catch (error) {
-      console.error('Failed to cleanup stale labs:', error);
       throw error;
     }
   },
   
-  // Get templates
-  getTemplates: () => api.get('/labs/templates'),
+  // Get templates - simplified, no database
+  getTemplates: () => {
+    // Return static templates or fetch from a config service
+    return Promise.resolve({
+      data: [
+        { id: 'ubuntu', name: 'Ubuntu 22.04', image: 'ubuntu:22.04', description: 'Basic Ubuntu environment' },
+        { id: 'python', name: 'Python 3.11', image: 'python:3.11', description: 'Python development environment' },
+        { id: 'node', name: 'Node.js 18', image: 'node:18', description: 'Node.js development environment' }
+      ]
+    });
+  }
 };
 
 // Extract SSH connection info from Docker container
