@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Single Database
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+  # Services
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_INTERNAL_PORT}"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SERVICE_URL: http://auth-service:${AUTH_SERVICE_INTERNAL_PORT}
+      USER_SERVICE_URL: http://user-service:${USER_SERVICE_INTERNAL_PORT}
+      CONTAINER_SERVICE_URL: http://container-manager:${CONTAINER_SERVICE_INTERNAL_PORT}
+      LAB_SERVICE_URL: http://lab-manager:${LAB_SERVICE_INTERNAL_PORT}
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_INTERNAL_PORT}"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_INTERNAL_PORT}"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+
+  container-manager:
+    build: ./services/container-manager
+    ports:
+      - "${CONTAINER_SERVICE_PORT}:${CONTAINER_SERVICE_INTERNAL_PORT}"
+    depends_on:
+      - postgres
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+
+  lab-manager:
+    build: ./services/lab-manager
+    ports:
+      - "${LAB_SERVICE_PORT}:${LAB_SERVICE_INTERNAL_PORT}"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      CONTAINER_SERVICE_URL: http://container-manager:${CONTAINER_SERVICE_INTERNAL_PORT}
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+
+volumes:
+  postgres_data:
