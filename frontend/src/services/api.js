@@ -65,6 +65,7 @@ export const containerAPI = {
   getContainer: (containerId) => api.get(`/containers/${containerId}`),
   startContainer: (containerId) => api.post(`/containers/${containerId}/start`),
   stopContainer: (containerId) => api.post(`/containers/${containerId}/stop`),
+  removeContainer: (containerId) => api.delete(`/containers/${containerId}`),
   getImages: () => api.get('/containers/images'),
 };
 

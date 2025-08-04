@@ -128,13 +128,15 @@ export function CreateLabForm() {
     setError('');
 
     try {
-      await labAPI.createLab({
+      const response = await labAPI.createLab({
         name,
         template_id: parseInt(templateId),
         duration_hours: duration,
         user_id: getCurrentUserId()
       });
-      navigate('/dashboard');
+      
+      // Redirect to the new lab's details page
+      navigate(`/lab/${response.data.id}`);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create lab');
     } finally {

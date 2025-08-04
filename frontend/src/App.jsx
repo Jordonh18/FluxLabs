@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { CreateLab } from './pages/CreateLab';
 import { Profile } from './pages/Profile';
+import { LabDetailsPage } from './pages/LabDetailsPage';
 import './index.css';
 
 function App() {
@@ -41,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/lab/:labId" 
+            element={
+              <ProtectedRoute>
+                <LabDetailsPage />
               </ProtectedRoute>
             } 
           />
