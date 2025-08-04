@@ -141,7 +141,18 @@ export function LabList({ userId }) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-4" />
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo-light.svg" 
+              alt="FluxLabs" 
+              className="h-8 w-8 text-destructive dark:hidden opacity-50"
+            />
+            <img 
+              src="/logo-dark.svg" 
+              alt="FluxLabs" 
+              className="h-8 w-8 text-destructive hidden dark:block opacity-50"
+            />
+          </div>
           <div className="text-destructive mb-4">{error}</div>
           <Button onClick={loadLabs}>Retry</Button>
         </CardContent>
@@ -153,7 +164,18 @@ export function LabList({ userId }) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <Container className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo-light.svg" 
+              alt="FluxLabs" 
+              className="h-12 w-12 text-muted-foreground dark:hidden opacity-50"
+            />
+            <img 
+              src="/logo-dark.svg" 
+              alt="FluxLabs" 
+              className="h-12 w-12 text-muted-foreground hidden dark:block opacity-50"
+            />
+          </div>
           <h3 className="text-lg font-semibold mb-2">No labs found</h3>
           <p className="text-muted-foreground mb-4">
             Get started by creating your first lab environment

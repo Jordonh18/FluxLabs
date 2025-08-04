@@ -4,7 +4,7 @@ import { Button } from '../components/ui/button';
 import { UserProfile } from '../components/UserProfile';
 import { Layout } from '../components/Layout';
 import { getCurrentUserId } from '../utils/auth';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export function Profile() {
   const navigate = useNavigate();
@@ -25,8 +25,17 @@ export function Profile() {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                <User className="h-8 w-8" />
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                <img 
+                  src="/logo-light.svg" 
+                  alt="FluxLabs" 
+                  className="h-8 w-8 dark:hidden"
+                />
+                <img 
+                  src="/logo-dark.svg" 
+                  alt="FluxLabs" 
+                  className="h-8 w-8 hidden dark:block"
+                />
                 User Profile
               </h1>
               <p className="text-muted-foreground">

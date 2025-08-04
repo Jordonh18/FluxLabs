@@ -16,7 +16,19 @@ export function Dashboard() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+              <img 
+                src="/logo-light.svg" 
+                alt="FluxLabs" 
+                className="h-8 w-8 dark:hidden"
+              />
+              <img 
+                src="/logo-dark.svg" 
+                alt="FluxLabs" 
+                className="h-8 w-8 hidden dark:block"
+              />
+              Dashboard
+            </h1>
             <p className="text-muted-foreground">
               Manage and monitor your container laboratories
             </p>

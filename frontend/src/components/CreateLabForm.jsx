@@ -171,8 +171,17 @@ export function CreateLabForm() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Container className="h-6 w-6" />
+        <CardTitle className="flex items-center gap-3">
+          <img 
+            src="/logo-light.svg" 
+            alt="FluxLabs" 
+            className="h-6 w-6 dark:hidden"
+          />
+          <img 
+            src="/logo-dark.svg" 
+            alt="FluxLabs" 
+            className="h-6 w-6 hidden dark:block"
+          />
           Create New Lab
         </CardTitle>
       </CardHeader>
@@ -237,7 +246,18 @@ export function CreateLabForm() {
             <div className="border rounded-lg p-4 max-h-80 overflow-y-auto bg-card">
               {filteredTemplates.length === 0 ? (
                 <div className="text-center py-8">
-                  <Container className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <div className="flex justify-center mb-2">
+                    <img 
+                      src="/logo-light.svg" 
+                      alt="FluxLabs" 
+                      className="h-8 w-8 text-muted-foreground dark:hidden opacity-50"
+                    />
+                    <img 
+                      src="/logo-dark.svg" 
+                      alt="FluxLabs" 
+                      className="h-8 w-8 text-muted-foreground hidden dark:block opacity-50"
+                    />
+                  </div>
                   <p className="text-sm text-muted-foreground">No templates found</p>
                 </div>
               ) : (

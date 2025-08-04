@@ -20,8 +20,7 @@ import {
   Home,
   Moon,
   Sun,
-  Monitor,
-  Beaker
+  Monitor
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
@@ -48,8 +47,16 @@ export function Navigation() {
       <div className="flex h-16 items-center px-4">
         <div className="flex items-center space-x-4">
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <Beaker className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">FluxLabs</span>
+            <img 
+              src="/logo-with-text-light.svg" 
+              alt="FluxLabs" 
+              className="h-8 dark:hidden"
+            />
+            <img 
+              src="/logo-with-text-dark.svg" 
+              alt="FluxLabs" 
+              className="h-8 hidden dark:block"
+            />
           </Link>
         </div>
 

@@ -23,8 +23,17 @@ export function CreateLab() {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                <Plus className="h-8 w-8" />
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                <img 
+                  src="/logo-light.svg" 
+                  alt="FluxLabs" 
+                  className="h-8 w-8 dark:hidden"
+                />
+                <img 
+                  src="/logo-dark.svg" 
+                  alt="FluxLabs" 
+                  className="h-8 w-8 hidden dark:block"
+                />
                 Create New Lab
               </h1>
               <p className="text-muted-foreground">
