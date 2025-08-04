@@ -27,14 +27,14 @@ export function Profile() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
                 <img 
-                  src="/logo-light.svg" 
-                  alt="FluxLabs" 
-                  className="h-8 w-8 dark:hidden"
-                />
-                <img 
                   src="/logo-dark.svg" 
                   alt="FluxLabs" 
-                  className="h-8 w-8 hidden dark:block"
+                  className="h-10 w-10 dark:hidden"
+                />
+                <img 
+                  src="/logo-light.svg" 
+                  alt="FluxLabs" 
+                  className="h-10 w-10 hidden dark:block"
                 />
                 User Profile
               </h1>

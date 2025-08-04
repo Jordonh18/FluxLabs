@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Input } from './ui/input';        <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+          <img 
+            src="/logo-dark.svg" 
+            alt="FluxLabs" 
+            className="h-8 w-8 dark:hidden mr-3"
+          />
+          <img 
+            src="/logo-light.svg" 
+            alt="FluxLabs" 
+            className="h-8 w-8 hidden dark:block mr-3"
+          />abel } from './ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
