@@ -33,11 +33,16 @@ import { labAPI } from '../services/api';
 import { toast } from 'sonner';
 
 export function LabList({ userId }) {
+  console.log('🔄 LabList component initialized with userId:', userId);
+  
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  console.log('🔍 LabList state - labs:', labs, 'type:', typeof labs, 'isArray:', Array.isArray(labs), 'loading:', loading);
+
   useEffect(() => {
+    console.log('⚡ LabList useEffect triggered with userId:', userId);
     if (userId) {
       loadLabs();
       // Set up real-time polling every 10 seconds
@@ -47,17 +52,20 @@ export function LabList({ userId }) {
   }, [userId]);
 
   const loadLabs = async () => {
+    console.log('🚀 loadLabs called with userId:', userId);
     if (!userId) {
-      console.warn('No userId provided to loadLabs');
+      console.warn('⚠️  No userId provided to loadLabs');
       setLabs([]);
       setLoading(false);
       return;
     }
 
     try {
-      console.log('Loading labs for user:', userId);
+      console.log('📡 Making API call to getUserLabs...');
       const response = await labAPI.getUserLabs(userId);
-      console.log('API response:', response);
+      console.log('📥 Raw API response:', response);
+      console.log('📥 Response data:', response?.data);
+      console.log('📥 Response data type:', typeof response?.data);
       
       // Handle various API response formats
       let labsData = null;
@@ -65,18 +73,23 @@ export function LabList({ userId }) {
       // Try different possible response structures
       if (response?.data?.data) {
         labsData = response.data.data;
+        console.log('✅ Found labs in response.data.data');
       } else if (response?.data) {
         labsData = response.data;
+        console.log('✅ Found labs in response.data');
       } else if (response) {
         labsData = response;
+        console.log('✅ Using response directly');
       }
       
-      console.log('Labs data:', labsData, 'Type:', typeof labsData, 'Is array:', Array.isArray(labsData));
+      console.log('🔍 Extracted labsData:', labsData);
+      console.log('🔍 labsData type:', typeof labsData);
+      console.log('🔍 labsData isArray:', Array.isArray(labsData));
       
       // CRITICAL FIX: Ensure we always set an array
       if (Array.isArray(labsData)) {
+        console.log('✅ Setting labs array with', labsData.length, 'items:', labsData);
         setLabs(labsData);
-        console.log('✅ Set labs array with', labsData.length, 'items');
       } else if (labsData === null || labsData === undefined) {
         console.log('📝 API returned null/undefined, setting empty array');
         setLabs([]);
@@ -87,9 +100,11 @@ export function LabList({ userId }) {
       setError('');
     } catch (err) {
       console.error('❌ Failed to load labs:', err);
+      console.error('❌ Error stack:', err.stack);
       setError(`Failed to load labs: ${err.message || 'Unknown error'}`);
       setLabs([]); // Ensure labs is always an array even on error
     } finally {
+      console.log('🏁 loadLabs finished, setting loading to false');
       setLoading(false);
     }
   };
@@ -165,7 +180,10 @@ export function LabList({ userId }) {
     return timeLeft > 0 && timeLeft < 30 * 60 * 1000; // Less than 30 minutes
   };
 
+  console.log('🎯 Before rendering - labs:', labs, 'type:', typeof labs, 'isArray:', Array.isArray(labs), 'length:', labs?.length);
+
   if (loading) {
+    console.log('⏳ Rendering loading state');
     return (
       <div className="flex items-center justify-center py-8">
         <RefreshCw className="h-6 w-6 animate-spin mr-2" />
@@ -175,6 +193,7 @@ export function LabList({ userId }) {
   }
 
   if (error) {
+    console.log('❌ Rendering error state:', error);
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -198,6 +217,7 @@ export function LabList({ userId }) {
   }
 
   if (labs.length === 0) {
+    console.log('📭 Rendering empty state');
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -224,7 +244,7 @@ export function LabList({ userId }) {
 
   // Additional safety check before rendering the labs
   if (!Array.isArray(labs)) {
-    console.error('Labs is not an array:', labs, typeof labs);
+    console.error('🚨 CRITICAL ERROR: Labs is not an array:', labs, typeof labs);
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -234,6 +254,8 @@ export function LabList({ userId }) {
       </Card>
     );
   }
+
+  console.log('🎨 About to render labs list with', labs.length, 'items');
 
   return (
     <div className="space-y-6">
@@ -257,7 +279,9 @@ export function LabList({ userId }) {
       </div>
       
       <div className="grid gap-4">
-        {Array.isArray(labs) && labs.map((lab) => (
+        {Array.isArray(labs) && labs.map((lab) => {
+          console.log('🔧 Rendering lab:', lab?.id, lab?.name);
+          return (
           <ContextMenu key={lab.id}>
             <ContextMenuTrigger>
               <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
@@ -383,7 +407,8 @@ export function LabList({ userId }) {
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
