@@ -6,6 +6,13 @@ import { Label } from './ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from './ui/context-menu';
 import { Separator } from './ui/separator';
 import { 
   Search, 
@@ -236,14 +243,15 @@ export function CreateLabForm() {
               ) : (
                 <div className="space-y-3">
                   {filteredTemplates.map((template) => (
-                    <label 
-                      key={template.id} 
-                      className={`flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-sm ${
-                        templateId === template.id.toString() 
-                          ? 'bg-primary/5 border-primary ring-2 ring-primary/20' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
+                    <ContextMenu key={template.id}>
+                      <ContextMenuTrigger>
+                        <label 
+                          className={`flex items-start space-x-3 p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-sm ${
+                            templateId === template.id.toString() 
+                              ? 'bg-primary/5 border-primary ring-2 ring-primary/20' 
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
                       <div className="flex items-center mt-1">
                         {templateId === template.id.toString() ? (
                           <CheckCircle className="h-4 w-4 text-primary" />
@@ -274,6 +282,25 @@ export function CreateLabForm() {
                         </div>
                       </div>
                     </label>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        <ContextMenuItem onClick={() => {
+                          handleTemplateChange(template.id.toString());
+                          setDuration(template.default_duration_hours);
+                        }}>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Select Template
+                        </ContextMenuItem>
+                        <ContextMenuSeparator />
+                        <ContextMenuItem onClick={() => navigator.clipboard.writeText(template.image)}>
+                          <Container className="mr-2 h-4 w-4" />
+                          Copy Docker Image
+                        </ContextMenuItem>
+                        <ContextMenuItem onClick={() => navigator.clipboard.writeText(template.name)}>
+                          Copy Template Name
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
                   ))}
                 </div>
               )}

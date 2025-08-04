@@ -186,9 +186,11 @@ export function LabList({ userId }) {
       
       <div className="grid gap-4">
         {labs.map((lab) => (
-          <Card key={lab.id} className="hover:shadow-md transition-all duration-200 border-2 hover:border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
+          <ContextMenu key={lab.id}>
+            <ContextMenuTrigger>
+              <Card className="hover:shadow-md transition-all duration-200 border-2 hover:border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-semibold">{lab.name}</h3>
@@ -280,6 +282,35 @@ export function LabList({ userId }) {
               </div>
             </CardContent>
           </Card>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => window.open(`/lab/${lab.id}`, '_blank')}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              {lab.status !== 'expired' && lab.status !== 'error' && (
+                <ContextMenuItem onClick={() => handleQuickExtend(lab.id)}>
+                  <Clock className="mr-2 h-4 w-4" />
+                  Extend +1h
+                </ContextMenuItem>
+              )}
+              <ContextMenuItem onClick={() => navigator.clipboard.writeText(lab.container_id || '')}>
+                <Container className="mr-2 h-4 w-4" />
+                Copy Container ID
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              {lab.status !== 'expired' && (
+                <ContextMenuItem 
+                  onClick={() => handleQuickTerminate(lab.id)} 
+                  className="text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Terminate Lab
+                </ContextMenuItem>
+              )}
+            </ContextMenuContent>
+          </ContextMenu>
         ))}
       </div>
     </div>
