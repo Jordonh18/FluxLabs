@@ -173,4 +173,4 @@ async def terminate_lab(lab_id: int, request: Request):
 
 @router.get("/labs/templates")
 async def get_templates(request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/templates")
+    return await proxy_request(request, f"{LAB_SERVICE_URL}/templates", auth_required=False)
