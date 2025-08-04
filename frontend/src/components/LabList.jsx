@@ -166,12 +166,12 @@ export function LabList({ userId }) {
         <CardContent className="p-8 text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="/logo-light.svg" 
+              src="/logo-dark.svg" 
               alt="FluxLabs" 
               className="h-12 w-12 text-muted-foreground dark:hidden opacity-50"
             />
             <img 
-              src="/logo-dark.svg" 
+              src="/logo-light.svg" 
               alt="FluxLabs" 
               className="h-12 w-12 text-muted-foreground hidden dark:block opacity-50"
             />

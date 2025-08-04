@@ -173,12 +173,12 @@ export function CreateLabForm() {
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <img 
-            src="/logo-light.svg" 
+            src="/logo-dark.svg" 
             alt="FluxLabs" 
             className="h-6 w-6 dark:hidden"
           />
           <img 
-            src="/logo-dark.svg" 
+            src="/logo-light.svg" 
             alt="FluxLabs" 
             className="h-6 w-6 hidden dark:block"
           />
@@ -248,12 +248,12 @@ export function CreateLabForm() {
                 <div className="text-center py-8">
                   <div className="flex justify-center mb-2">
                     <img 
-                      src="/logo-light.svg" 
+                      src="/logo-dark.svg" 
                       alt="FluxLabs" 
                       className="h-8 w-8 text-muted-foreground dark:hidden opacity-50"
                     />
                     <img 
-                      src="/logo-dark.svg" 
+                      src="/logo-light.svg" 
                       alt="FluxLabs" 
                       className="h-8 w-8 text-muted-foreground hidden dark:block opacity-50"
                     />

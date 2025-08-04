@@ -6,21 +6,18 @@ export function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary/10 rounded-2xl">
-              <img 
-                src="/logo-light.svg" 
-                alt="FluxLabs Logo" 
-                className="h-12 w-12 dark:hidden"
-              />
-              <img 
-                src="/logo-dark.svg" 
-                alt="FluxLabs Logo" 
-                className="h-12 w-12 hidden dark:block"
-              />
-            </div>
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/logo-with-text-dark.svg" 
+              alt="FluxLabs Logo" 
+              className="h-16 w-auto dark:hidden"
+            />
+            <img 
+              src="/logo-with-text-light.svg" 
+              alt="FluxLabs Logo" 
+              className="h-16 w-auto hidden dark:block"
+            />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">FluxLabs</h1>
           <p className="text-muted-foreground mt-2">Access your container laboratories</p>
         </div>
         <LoginForm />

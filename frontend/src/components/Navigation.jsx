@@ -48,14 +48,14 @@ export function Navigation() {
         <div className="flex items-center space-x-4">
           <Link to="/dashboard" className="flex items-center space-x-2">
             <img 
-              src="/logo-with-text-light.svg" 
+              src="/logo-dark.svg" 
               alt="FluxLabs" 
-              className="h-8 dark:hidden"
+              className="h-8 w-8 dark:hidden"
             />
             <img 
-              src="/logo-with-text-dark.svg" 
+              src="/logo-light.svg" 
               alt="FluxLabs" 
-              className="h-8 hidden dark:block"
+              className="h-8 w-8 hidden dark:block"
             />
           </Link>
         </div>
