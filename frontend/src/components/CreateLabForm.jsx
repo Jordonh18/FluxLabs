@@ -18,6 +18,9 @@ export function CreateLabForm() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Form validation
+  const isFormValid = name.trim() && templateId && duration >= 1 && duration <= 24;
+
   useEffect(() => {
     loadTemplates();
   }, []);
@@ -81,36 +84,33 @@ export function CreateLabForm() {
   };
 
   const categories = [
-    { value: 'all', label: '🗂️ All Templates' },
-    { value: 'linux', label: '🐧 Linux Distributions' },
-    { value: 'development', label: '💻 Development Environments' },
-    { value: 'database', label: '🗄️ Databases' },
-    { value: 'webserver', label: '🌐 Web Servers' },
-    { value: 'tools', label: '🛠️ DevOps Tools' }
+    { value: 'all', label: 'All Templates' },
+    { value: 'linux', label: 'Linux Distributions' },
+    { value: 'development', label: 'Development Environments' },
+    { value: 'database', label: 'Databases' },
+    { value: 'webserver', label: 'Web Servers' },
+    { value: 'tools', label: 'DevOps Tools' }
   ];
-
-  const getTemplateIcon = (templateName) => {
-    const name = templateName.toLowerCase();
-    if (name.includes('ubuntu') || name.includes('debian') || name.includes('linux')) return '🐧';
-    if (name.includes('python')) return '🐍';
-    if (name.includes('node') || name.includes('javascript')) return '🟢';
-    if (name.includes('java')) return '☕';
-    if (name.includes('go')) return '🐹';
-    if (name.includes('rust')) return '🦀';
-    if (name.includes('php')) return '🐘';
-    if (name.includes('ruby')) return '💎';
-    if (name.includes('mysql') || name.includes('postgres') || name.includes('mongo')) return '🗄️';
-    if (name.includes('redis')) return '🔴';
-    if (name.includes('nginx') || name.includes('apache')) return '🌐';
-    if (name.includes('docker')) return '🐳';
-    if (name.includes('ansible')) return '📋';
-    if (name.includes('terraform')) return '🏗️';
-    if (name.includes('kali')) return '🔐';
-    return '📦';
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!name.trim()) {
+      setError('Please enter a lab name');
+      return;
+    }
+    
+    if (!templateId) {
+      setError('Please select a template');
+      return;
+    }
+    
+    if (!duration || duration < 1 || duration > 24) {
+      setError('Please enter a valid duration between 1 and 24 hours');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -137,23 +137,24 @@ export function CreateLabForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Lab Name</Label>
+            <Label htmlFor="name">Lab Name <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter lab name"
               required
+              className={!name.trim() && name !== '' ? 'border-destructive' : ''}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="template">Template</Label>
+            <Label htmlFor="template">Template <span className="text-destructive">*</span></Label>
             
             {/* Search and filter controls */}
             <div className="space-y-2">
               <Input
-                placeholder="🔍 Search templates by name or description..."
+                placeholder="Search templates by name or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -201,14 +202,11 @@ export function CreateLabForm() {
                       required
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm flex items-center gap-2">
-                        <span>{getTemplateIcon(template.name)}</span>
-                        {template.name}
-                      </div>
+                      <div className="font-medium text-sm">{template.name}</div>
                       <div className="text-xs text-muted-foreground">{template.description}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Image: <code className="bg-muted px-1 rounded">{template.image}</code>
-                        <span className="ml-2">⏱️ {template.default_duration_hours}h default</span>
+                        <span className="ml-2">{template.default_duration_hours}h default</span>
                       </div>
                     </div>
                   </label>
@@ -224,16 +222,20 @@ export function CreateLabForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (hours)</Label>
+            <Label htmlFor="duration">Duration (hours) <span className="text-destructive">*</span></Label>
             <Input
               id="duration"
               type="number"
               min="1"
               max="24"
               value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value))}
+              onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
               required
+              className={duration < 1 || duration > 24 ? 'border-destructive' : ''}
             />
+            <p className="text-xs text-muted-foreground">
+              Choose between 1 and 24 hours
+            </p>
           </div>
           
           {error && (
@@ -241,7 +243,11 @@ export function CreateLabForm() {
           )}
           
           <div className="flex space-x-2">
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading || !isFormValid}
+              className={!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}
+            >
               {loading ? 'Creating...' : 'Create Lab'}
             </Button>
             <Button 
