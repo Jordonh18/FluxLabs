@@ -155,6 +155,10 @@ async def list_images(request: Request):
 async def create_lab(request: Request):
     return await proxy_request(request, f"{LAB_SERVICE_URL}/labs")
 
+@router.get("/labs/templates")
+async def get_templates(request: Request):
+    return await proxy_request(request, f"{LAB_SERVICE_URL}/templates", auth_required=False)
+
 @router.get("/labs/user/{user_id}")
 async def get_user_labs(user_id: int, request: Request):
     return await proxy_request(request, f"{LAB_SERVICE_URL}/labs/user/{user_id}")
@@ -170,7 +174,3 @@ async def extend_lab(lab_id: int, request: Request):
 @router.delete("/labs/{lab_id}")
 async def terminate_lab(lab_id: int, request: Request):
     return await proxy_request(request, f"{LAB_SERVICE_URL}/labs/{lab_id}")
-
-@router.get("/labs/templates")
-async def get_templates(request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/templates", auth_required=False)
