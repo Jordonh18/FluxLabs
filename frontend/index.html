@@ -2,9 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo-dark.svg" />
+    <!-- Adaptive favicon based on browser theme -->
+    <link rel="icon" type="image/svg+xml" href="/logo-dark.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/logo-light.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/logo-dark.svg" /> <!-- Default fallback -->
+    <!-- Apple touch icon -->
+    <link rel="apple-touch-icon" href="/logo-dark.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="FluxLabs - Container Laboratory Management Platform" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <title>FluxLabs - Container Labs</title>
   </head>
   <body>

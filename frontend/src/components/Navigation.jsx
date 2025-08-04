@@ -50,12 +50,12 @@ export function Navigation() {
             <img 
               src="/logo-dark.svg" 
               alt="FluxLabs" 
-              className="h-12 w-12 dark:hidden"
+              className="h-14 w-14 dark:hidden"
             />
             <img 
               src="/logo-light.svg" 
               alt="FluxLabs" 
-              className="h-12 w-12 hidden dark:block"
+              className="h-14 w-14 hidden dark:block"
             />
           </Link>
         </div>
