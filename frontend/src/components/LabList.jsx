@@ -168,24 +168,18 @@ export function LabList({ userId }) {
             <img 
               src="/logo-dark.svg" 
               alt="FluxLabs" 
-              className="h-16 w-16 text-muted-foreground dark:hidden opacity-50"
+              className="h-20 w-20 text-muted-foreground dark:hidden opacity-50"
             />
             <img 
               src="/logo-light.svg" 
               alt="FluxLabs" 
-              className="h-16 w-16 text-muted-foreground hidden dark:block opacity-50"
+              className="h-20 w-20 text-muted-foreground hidden dark:block opacity-50"
             />
           </div>
           <h3 className="text-lg font-semibold mb-2">No labs found</h3>
-          <p className="text-muted-foreground mb-4">
-            Get started by creating your first lab environment
+          <p className="text-muted-foreground">
+            No lab environments are currently available
           </p>
-          <Link to="/create-lab">
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create Your First Lab
-            </Button>
-          </Link>
         </CardContent>
       </Card>
     );

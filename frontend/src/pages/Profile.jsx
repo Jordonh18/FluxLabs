@@ -30,12 +30,12 @@ export function Profile() {
                 <img 
                   src="/logo-dark.svg" 
                   alt="FluxLabs" 
-                  className="h-10 w-10 dark:hidden"
+                  className="h-12 w-12 dark:hidden"
                 />
                 <img 
                   src="/logo-light.svg" 
                   alt="FluxLabs" 
-                  className="h-10 w-10 hidden dark:block"
+                  className="h-12 w-12 hidden dark:block"
                 />
               </div>
               Profile

@@ -175,12 +175,12 @@ export function CreateLabForm() {
           <img 
             src="/logo-dark.svg" 
             alt="FluxLabs" 
-            className="h-8 w-8 dark:hidden"
+            className="h-10 w-10 dark:hidden"
           />
           <img 
             src="/logo-light.svg" 
             alt="FluxLabs" 
-            className="h-8 w-8 hidden dark:block"
+            className="h-10 w-10 hidden dark:block"
           />
           Create New Lab
         </CardTitle>
@@ -250,12 +250,12 @@ export function CreateLabForm() {
                     <img 
                       src="/logo-dark.svg" 
                       alt="FluxLabs" 
-                      className="h-12 w-12 text-muted-foreground dark:hidden opacity-50"
+                      className="h-16 w-16 text-muted-foreground dark:hidden opacity-50"
                     />
                     <img 
                       src="/logo-light.svg" 
                       alt="FluxLabs" 
-                      className="h-12 w-12 text-muted-foreground hidden dark:block opacity-50"
+                      className="h-16 w-16 text-muted-foreground hidden dark:block opacity-50"
                     />
                   </div>
                   <p className="text-sm text-muted-foreground">No templates found</p>
