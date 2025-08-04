@@ -12,6 +12,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Services
   api-gateway:
@@ -19,31 +25,41 @@ services:
     ports:
       - "${API_GATEWAY_PORT}:${API_GATEWAY_INTERNAL_PORT}"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
     environment:
       DATABASE_URL: ${DATABASE_URL}
       AUTH_SERVICE_URL: http://auth-service:${AUTH_SERVICE_INTERNAL_PORT}
       USER_SERVICE_URL: http://user-service:${USER_SERVICE_INTERNAL_PORT}
       CONTAINER_SERVICE_URL: http://container-manager:${CONTAINER_SERVICE_INTERNAL_PORT}
+    restart: unless-stopped
 
   auth-service:
     build: ./services/auth-service
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_INTERNAL_PORT}"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY}
+    restart: unless-stopped
 
   user-service:
     build: ./services/user-service
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_INTERNAL_PORT}"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_URL: ${DATABASE_URL}
+    restart: unless-stopped
 
   container-manager:
     build: ./services/container-manager
@@ -54,6 +70,7 @@ services:
     environment:
       # Remove DATABASE_URL since we're Docker-only now
       DOCKER_HOST: unix:///var/run/docker.sock
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -61,6 +78,9 @@ services:
       - "${FRONTEND_PORT}:3000"
     environment:
       VITE_API_URL: ${VITE_API_URL}
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
 
 volumes:
   postgres_data:
