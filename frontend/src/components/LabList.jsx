@@ -273,7 +273,7 @@ export function LabList({ userId }) {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Link to={`/lab/${lab.id}`}>
+                  <Link to={`/lab/${lab.container_id || lab.id}`}>
                     <Button 
                       size="sm" 
                       className="flex items-center gap-2"
@@ -334,9 +334,9 @@ export function LabList({ userId }) {
           </Card>
             </ContextMenuTrigger>
             <ContextMenuContent>
-              <ContextMenuItem onClick={() => window.open(`/lab/${lab.id}`, '_blank')}>
+                            <ContextMenuItem onClick={() => window.open(`/lab/${lab.container_id || lab.id}`, '_blank')}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                View in New Tab
               </ContextMenuItem>
               <ContextMenuSeparator />
               {lab.is_docker_active && lab.status !== 'expired' && lab.status !== 'error' && (

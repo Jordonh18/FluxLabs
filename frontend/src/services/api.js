@@ -118,14 +118,32 @@ export const labAPI = {
         }
       });
       
-      // Filter out terminated labs that are older than 1 hour
-      const activeOrRecentLabs = mergedLabs.filter(lab => {
-        if (lab.is_docker_active) return true;
-        
-        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-        const updatedAt = new Date(lab.updated_at || lab.created_at);
-        return updatedAt > oneHourAgo;
+      // Filter out terminated labs that are older than 1 hour and clean them up
+      const activeOrRecentLabs = [];
+      const staleLabIds = [];
+      
+      mergedLabs.forEach(lab => {
+        if (lab.is_docker_active) {
+          activeOrRecentLabs.push(lab);
+        } else {
+          // Check if lab is stale (container not found and older than 1 hour)
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const updatedAt = new Date(lab.updated_at || lab.created_at);
+          
+          if (updatedAt > oneHourAgo) {
+            activeOrRecentLabs.push(lab);
+          } else {
+            staleLabIds.push(lab.id);
+          }
+        }
       });
+      
+      // Clean up stale labs from database (fire and forget)
+      if (staleLabIds.length > 0) {
+        this.cleanupStaleLabs(staleLabIds).catch(err => 
+          console.warn('Failed to cleanup stale labs:', err)
+        );
+      }
       
       return { data: activeOrRecentLabs };
     } catch (error) {
@@ -203,8 +221,18 @@ export const labAPI = {
     }
   },
   
-  // Extend lab
-  extendLab: (labId, additionalHours) => api.post(`/labs/${labId}/extend`, { additional_hours: additionalHours }),
+  // Extend lab time
+  extendLab: (labId, hours) => api.put(`/labs/${labId}/extend`, { hours }),
+
+  // Clean up stale labs from database
+  cleanupStaleLabs: async (labIds) => {
+    try {
+      return await api.post('/labs/cleanup', { lab_ids: labIds });
+    } catch (error) {
+      console.error('Failed to cleanup stale labs:', error);
+      throw error;
+    }
+  },
   
   // Get templates
   getTemplates: () => api.get('/labs/templates'),

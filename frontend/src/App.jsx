@@ -46,7 +46,7 @@ function App() {
             } 
           />
           <Route 
-            path="/lab/:labId" 
+            path="/lab/:containerId" 
             element={
               <ProtectedRoute>
                 <LabDetailsPage />
