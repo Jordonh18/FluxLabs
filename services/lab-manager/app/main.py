@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 from database import get_database, engine, Base
 from models import Lab, LabTemplate
 from lab_service import LabService
@@ -43,9 +44,12 @@ class LabResponse(BaseModel):
     user_id: int
     container_id: Optional[int]
     name: str
-    expires_at: str
+    expires_at: datetime
     persistent: bool
     status: str
+    
+    class Config:
+        from_attributes = True
 
 class TemplateResponse(BaseModel):
     id: int
@@ -57,6 +61,7 @@ class TemplateResponse(BaseModel):
 @app.post("/labs", response_model=LabResponse)
 async def create_lab(lab_data: LabCreate, user_id: int = Query(...), db: Session = Depends(get_database)):
     try:
+        logger.info(f"Creating lab for user {user_id}: {lab_data.name} with template {lab_data.template_id}")
         lab = await lab_service.create_lab(
             db=db,
             user_id=user_id,
@@ -64,8 +69,10 @@ async def create_lab(lab_data: LabCreate, user_id: int = Query(...), db: Session
             template_id=lab_data.template_id,
             duration_hours=lab_data.duration_hours
         )
+        logger.info(f"Lab created successfully: {lab.id}")
         return lab
     except Exception as e:
+        logger.error(f"Failed to create lab: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/labs/user/{user_id}", response_model=list[LabResponse])

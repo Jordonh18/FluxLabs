@@ -35,18 +35,24 @@ class LabService:
         try:
             # Create container via Container Manager
             async with httpx.AsyncClient() as client:
+                container_request = {"image": template.image, "ssh_enabled": True}
+                print(f"Creating container with request: {container_request}")
+                
                 response = await client.post(
                     f"{self.container_service_url}/containers",
-                    json={"image": template.image, "ssh_enabled": True}
+                    json=container_request
                 )
+                
+                print(f"Container service response: {response.status_code} - {response.text}")
                 
                 if response.status_code == 200:
                     container_data = response.json()
                     lab.container_id = container_data["id"]
                     lab.status = "running"
+                    print(f"Container created with ID: {container_data['id']}")
                 else:
                     lab.status = "error"
-                    raise Exception("Failed to create container")
+                    raise Exception(f"Failed to create container: {response.status_code} - {response.text}")
 
         except Exception as e:
             lab.status = "error"
