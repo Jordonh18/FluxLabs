@@ -21,6 +21,16 @@ export function CreateLabForm() {
   // Form validation
   const isFormValid = name.trim() && templateId && duration >= 1 && duration <= 24;
 
+  const handleTemplateChange = (selectedTemplateId) => {
+    setTemplateId(selectedTemplateId);
+    
+    // Find the selected template and update duration to its default
+    const selectedTemplate = templates.find(template => template.id.toString() === selectedTemplateId);
+    if (selectedTemplate && selectedTemplate.default_duration_hours) {
+      setDuration(selectedTemplate.default_duration_hours);
+    }
+  };
+
   useEffect(() => {
     loadTemplates();
   }, []);
@@ -34,7 +44,9 @@ export function CreateLabForm() {
       const response = await labAPI.getTemplates();
       setTemplates(response.data);
       if (response.data.length > 0) {
-        setTemplateId(response.data[0].id);
+        const firstTemplate = response.data[0];
+        setTemplateId(firstTemplate.id);
+        setDuration(firstTemplate.default_duration_hours || 1);
       }
     } catch (error) {
       console.error('Failed to load templates:', error);
@@ -197,7 +209,7 @@ export function CreateLabForm() {
                       name="template"
                       value={template.id}
                       checked={templateId === template.id.toString()}
-                      onChange={(e) => setTemplateId(e.target.value)}
+                      onChange={(e) => handleTemplateChange(e.target.value)}
                       className="mt-1"
                       required
                     />
@@ -234,7 +246,7 @@ export function CreateLabForm() {
               className={duration < 1 || duration > 24 ? 'border-destructive' : ''}
             />
             <p className="text-xs text-muted-foreground">
-              Choose between 1 and 24 hours
+              Duration automatically set based on selected template. Choose between 1 and 24 hours.
             </p>
           </div>
           
