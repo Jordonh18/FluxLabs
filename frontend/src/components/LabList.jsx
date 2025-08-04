@@ -46,12 +46,23 @@ export function LabList({ userId }) {
 
   const loadLabs = async () => {
     try {
+      console.log('Loading labs for user:', userId);
       const response = await labAPI.getUserLabs(userId);
-      setLabs(response.data);
+      console.log('API response:', response);
+      // Ensure we always get an array, even if the API returns unexpected data
+      const labsData = response.data;
+      console.log('Labs data:', labsData, 'Type:', typeof labsData, 'Is array:', Array.isArray(labsData));
+      if (Array.isArray(labsData)) {
+        setLabs(labsData);
+      } else {
+        console.warn('API returned non-array data:', labsData);
+        setLabs([]);
+      }
       setError('');
     } catch (err) {
       console.error('Failed to load labs:', err);
       setError('Failed to load labs');
+      setLabs([]); // Ensure labs is always an array even on error
     } finally {
       setLoading(false);
     }
