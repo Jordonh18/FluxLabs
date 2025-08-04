@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
-import { dockerAPI } from '../services/dockerApi';
+import { dockerAPI, labAPI } from '../services/api';
 import { Play, Square, Trash2, ArrowLeft, Globe } from 'lucide-react';
 
 export function LabDetails() {
@@ -22,7 +22,7 @@ export function LabDetails() {
 
   const loadContainerDetails = async () => {
     try {
-      const response = await dockerAPI.getContainer(containerId);
+      const response = await labAPI.getLab(containerId);
       setContainer(response.data);
       setError('');
     } catch (err) {
@@ -72,7 +72,7 @@ export function LabDetails() {
     
     setActionLoading('terminating');
     try {
-      await dockerAPI.removeContainer(containerId);
+      await labAPI.deleteLab(containerId);
       navigate('/dashboard'); // Redirect back to dashboard
     } catch (err) {
       setError('Failed to terminate container');

@@ -22,7 +22,7 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import { labAPI } from '../services/dockerApi';
+import { labAPI } from '../services/api';
 import { getCurrentUserId } from '../utils/auth';
 import { toast } from 'sonner';
 
@@ -158,8 +158,8 @@ export function CreateLabForm() {
       
       toast.success('Lab created successfully!', { id: 'create-lab' });
       
-      // Navigate using the container ID from the Docker response
-      const containerId = response.data.Id || response.data.container_id || response.data.id;
+      // Navigate using the container ID from the simple Docker response
+      const containerId = response.data.container_id || response.data.id;
       navigate(`/lab/${containerId}`);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create lab', { id: 'create-lab' });

@@ -29,7 +29,7 @@ import {
   Timer,
   AlertTriangle
 } from 'lucide-react';
-import { labAPI } from '../services/dockerApi';
+import { labAPI } from '../services/api';
 import { toast } from 'sonner';
 
 export function LabList({ userId }) {
@@ -59,7 +59,7 @@ export function LabList({ userId }) {
 
   const handleQuickTerminate = async (labId) => {
     try {
-      await labAPI.terminateLab(labId);
+      await labAPI.deleteLab(labId);
       setLabs(prevLabs => prevLabs.filter(lab => lab.id !== labId));
       toast.success('Lab terminated successfully');
     } catch (err) {
