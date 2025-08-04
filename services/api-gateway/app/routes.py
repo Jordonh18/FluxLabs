@@ -13,9 +13,8 @@ router = APIRouter()
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user-service:8002")
 CONTAINER_SERVICE_URL = os.getenv("CONTAINER_SERVICE_URL", "http://container-manager:8003")
-LAB_SERVICE_URL = os.getenv("LAB_SERVICE_URL", "http://lab-manager:8004")
 
-logger.info(f"Service URLs configured - AUTH: {AUTH_SERVICE_URL}, USER: {USER_SERVICE_URL}, CONTAINER: {CONTAINER_SERVICE_URL}, LAB: {LAB_SERVICE_URL}")
+logger.info(f"Service URLs configured - AUTH: {AUTH_SERVICE_URL}, USER: {USER_SERVICE_URL}, CONTAINER: {CONTAINER_SERVICE_URL}")
 
 async def verify_token(authorization: str = Header(None)):
     """Verify JWT token with auth service"""
@@ -133,52 +132,63 @@ async def create_user_settings(user_id: int, request: Request):
 async def update_user_settings(user_id: int, request: Request):
     return await proxy_request(request, f"{USER_SERVICE_URL}/settings/{user_id}")
 
-# Container service routes
-@router.post("/containers")
-async def create_container(request: Request):
-    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/containers")
+# Container service routes - simplified Docker-only endpoints
+@router.get("/labs")
+async def get_labs(user_id: str, request: Request):
+    """Get all labs for a user using Docker labels"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/labs?user_id={user_id}")
 
-@router.get("/containers/{container_id}")
-async def get_container(container_id: int, request: Request):
-    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/containers/{container_id}")
-
-@router.post("/containers/{container_id}/start")
-async def start_container(container_id: int, request: Request):
-    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/containers/{container_id}/start")
-
-@router.post("/containers/{container_id}/stop")
-async def stop_container(container_id: int, request: Request):
-    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/containers/{container_id}/stop")
-
-@router.delete("/containers/{container_id}")
-async def remove_container(container_id: int, request: Request):
-    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/containers/{container_id}")
-
-@router.get("/containers/images")
-async def list_images(request: Request):
-    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/images")
-
-# Lab service routes
-@router.post("/labs")
+@router.post("/create-lab")
 async def create_lab(request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/labs")
+    """Create a new Docker container lab with user labels"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/create-lab")
 
-@router.get("/labs/templates")
-async def get_templates(request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/templates", auth_required=False)
+@router.get("/lab/{container_id}")
+async def get_lab_details(container_id: str, request: Request):
+    """Get specific lab details by container ID"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}")
 
-@router.get("/labs/user/{user_id}")
-async def get_user_labs(user_id: int, request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/labs/user/{user_id}")
+@router.delete("/delete-lab/{container_id}")
+async def delete_lab(container_id: str, request: Request):
+    """Delete a lab (remove Docker container)"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/delete-lab/{container_id}")
 
-@router.get("/labs/{lab_id}")
-async def get_lab(lab_id: int, request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/labs/{lab_id}")
+@router.post("/lab/{container_id}/start")
+async def start_lab_container(container_id: str, request: Request):
+    """Start a lab container"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/start")
 
-@router.post("/labs/{lab_id}/extend")
-async def extend_lab(lab_id: int, request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/labs/{lab_id}/extend")
+@router.post("/lab/{container_id}/stop")
+async def stop_lab_container(container_id: str, request: Request):
+    """Stop a lab container"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/stop")
 
-@router.delete("/labs/{lab_id}")
-async def terminate_lab(lab_id: int, request: Request):
-    return await proxy_request(request, f"{LAB_SERVICE_URL}/labs/{lab_id}")
+@router.post("/lab/{container_id}/restart")
+async def restart_lab_container(container_id: str, request: Request):
+    """Restart a lab container"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/restart")
+
+@router.get("/lab/{container_id}/logs")
+async def get_lab_logs(container_id: str, request: Request):
+    """Get container logs"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/logs")
+
+@router.get("/lab/{container_id}/stats")
+async def get_lab_stats(container_id: str, request: Request):
+    """Get container stats"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/stats")
+
+@router.get("/lab/{container_id}/processes")
+async def get_lab_processes(container_id: str, request: Request):
+    """Get container processes"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/processes")
+
+@router.post("/lab/{container_id}/exec")
+async def exec_lab_command(container_id: str, request: Request):
+    """Execute command in container"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/lab/{container_id}/exec")
+
+@router.get("/templates")
+async def get_lab_templates(request: Request):
+    """Get available lab templates"""
+    return await proxy_request(request, f"{CONTAINER_SERVICE_URL}/templates", auth_required=False)

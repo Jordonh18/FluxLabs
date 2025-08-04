@@ -25,7 +25,6 @@ services:
       AUTH_SERVICE_URL: http://auth-service:${AUTH_SERVICE_INTERNAL_PORT}
       USER_SERVICE_URL: http://user-service:${USER_SERVICE_INTERNAL_PORT}
       CONTAINER_SERVICE_URL: http://container-manager:${CONTAINER_SERVICE_INTERNAL_PORT}
-      LAB_SERVICE_URL: http://lab-manager:${LAB_SERVICE_INTERNAL_PORT}
 
   auth-service:
     build: ./services/auth-service
@@ -50,22 +49,11 @@ services:
     build: ./services/container-manager
     ports:
       - "${CONTAINER_SERVICE_PORT}:${CONTAINER_SERVICE_INTERNAL_PORT}"
-    depends_on:
-      - postgres
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-
-  lab-manager:
-    build: ./services/lab-manager
-    ports:
-      - "${LAB_SERVICE_PORT}:${LAB_SERVICE_INTERNAL_PORT}"
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      CONTAINER_SERVICE_URL: http://container-manager:${CONTAINER_SERVICE_INTERNAL_PORT}
+      # Remove DATABASE_URL since we're Docker-only now
+      DOCKER_HOST: unix:///var/run/docker.sock
 
   frontend:
     build: ./frontend
