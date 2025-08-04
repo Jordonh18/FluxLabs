@@ -28,17 +28,19 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-logger.info("CORS configured for origins: localhost:3000, 127.0.0.1:3000, localhost:5173, 127.0.0.1:5173")
+logger.info("CORS configured to allow all origins for self-hosted deployment")
 
 # Include routes
 app.include_router(router, prefix="/api/v1")
 
 @app.get("/health")
 def health_check():
+    logger.info("Health check requested")
     return {"status": "healthy", "service": "api-gateway"}
 
 @app.get("/")
 def root():
+    logger.info("Root endpoint requested")
     return {"message": "FluxLabs API Gateway", "version": "1.0.0"}
 
 if __name__ == "__main__":
