@@ -19,14 +19,16 @@ app = FastAPI(title="FluxLabs API Gateway", version="1.0.0")
 
 logger.info("API Gateway starting up...")
 
-# Add CORS middleware
+# Add CORS middleware - Fully permissive for self-hosted applications
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],  # Allow all origins for self-hosted deployments
+    allow_credentials=False,  # Set to False when using allow_origins=["*"]
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
 )
+
+logger.info("CORS configured for origins: localhost:3000, 127.0.0.1:3000, localhost:5173, 127.0.0.1:5173")
 
 # Include routes
 app.include_router(router, prefix="/api/v1")
