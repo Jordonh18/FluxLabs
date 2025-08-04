@@ -50,7 +50,11 @@ export const userAPI = {
 export const labAPI = {
   getUserLabs: (userId) => api.get(`/labs/user/${userId}`),
   getLab: (labId) => api.get(`/labs/${labId}`),
-  createLab: (data) => api.post('/labs', data),
+  createLab: (data) => api.post(`/labs?user_id=${data.user_id}`, {
+    name: data.name,
+    template_id: data.template_id,
+    duration_hours: data.duration_hours
+  }),
   extendLab: (labId, additionalHours) => api.post(`/labs/${labId}/extend`, { additional_hours: additionalHours }),
   terminateLab: (labId) => api.delete(`/labs/${labId}`),
   getTemplates: () => api.get('/labs/templates'),

@@ -2,10 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { UserProfile } from '../components/UserProfile';
+import { getCurrentUserId } from '../utils/auth';
 
 export function Profile() {
   const navigate = useNavigate();
-  const userId = 1; // TODO: Get from auth context
+  const userId = getCurrentUserId();
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { labAPI } from '../services/api';
+import { getCurrentUserId } from '../utils/auth';
 
 export function CreateLabForm() {
   const [name, setName] = useState('');
@@ -131,7 +132,7 @@ export function CreateLabForm() {
         name,
         template_id: parseInt(templateId),
         duration_hours: duration,
-        user_id: 1 // TODO: Get from auth context
+        user_id: getCurrentUserId()
       });
       navigate('/dashboard');
     } catch (err) {

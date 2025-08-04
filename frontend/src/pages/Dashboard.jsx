@@ -2,10 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { LabList } from '../components/LabList';
+import { getCurrentUserId } from '../utils/auth';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const userId = 1; // TODO: Get from auth context
+  const userId = getCurrentUserId();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
