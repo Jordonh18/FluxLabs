@@ -46,7 +46,31 @@ export const userAPI = {
   updateSettings: (userId, data) => api.put(`/users/settings/${userId}`, data),
 };
 
-// Simple Docker container controls
+// Simple Docker-only lab API - Direct endpoints, no database
+export const labAPI = {
+  // Get all labs for a user (Docker containers with user label)
+  getUserLabs: (userId) => api.get(`/labs?user_id=${userId}`),
+  
+  // Get specific lab by container ID
+  getLab: (containerId) => api.get(`/lab/${containerId}`),
+  
+  // Create lab (creates Docker container with user label)
+  createLab: (data) => api.post('/create-lab', {
+    ...data,
+    user_id: data.user_id // Ensure user_id is included for labeling
+  }),
+  
+  // Delete lab (removes Docker container)
+  deleteLab: (containerId) => api.delete(`/delete-lab/${containerId}`),
+  
+  // Get templates
+  getTemplates: () => api.get('/templates'),
+  
+  // For backward compatibility, map terminateLab to deleteLab
+  terminateLab: (containerId) => api.delete(`/delete-lab/${containerId}`)
+};
+
+// Simple Docker container controls - all use the new easy endpoints
 export const dockerAPI = {
   // Start container
   startContainer: (containerId) => api.post(`/lab/${containerId}/start`),
@@ -60,29 +84,17 @@ export const dockerAPI = {
   // Get container logs
   getContainerLogs: (containerId) => api.get(`/lab/${containerId}/logs`),
   
+  // Get container stats
+  getContainerStats: (containerId) => api.get(`/lab/${containerId}/stats`),
+  
   // Execute command in container
   execCommand: (containerId, command) => api.post(`/lab/${containerId}/exec`, { command }),
-};
-
-// Simple Docker-only lab API - Direct endpoints, no database
-export const labAPI = {
-  // Get all labs for a user (Docker containers with user label)
-  getUserLabs: (userId) => api.get(`/labs?user_id=${userId}`),
   
-  // Get specific lab by container ID
-  getLab: (containerId) => api.get(`/lab/${containerId}`),
+  // Restart container
+  restartContainer: (containerId) => api.post(`/lab/${containerId}/restart`),
   
-  // Create lab (creates Docker container)
-  createLab: (data) => api.post('/create-lab', data),
-  
-  // Delete lab (removes Docker container)
-  deleteLab: (containerId) => api.delete(`/delete-lab/${containerId}`),
-  
-  // Get templates
-  getTemplates: () => api.get('/templates'),
-  
-  // For backward compatibility, map terminateLab to deleteLab
-  terminateLab: (containerId) => api.delete(`/delete-lab/${containerId}`)
+  // Get container processes
+  getContainerProcesses: (containerId) => api.get(`/lab/${containerId}/processes`),
 };
 
 export default api;
