@@ -23,7 +23,9 @@ export function LabDetails() {
   const loadContainerDetails = async () => {
     try {
       const response = await labAPI.getLab(containerId);
-      setContainer(response.data);
+      // Handle the API response format: {data: {...}}
+      const containerData = response.data?.data || response.data;
+      setContainer(containerData);
       setError('');
     } catch (err) {
       if (err.response?.status === 404) {

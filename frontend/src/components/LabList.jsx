@@ -33,7 +33,7 @@ import { labAPI } from '../services/api';
 import { toast } from 'sonner';
 
 export function LabList({ userId }) {
-  const [labs, setLabs] = useState([]);
+  const [labs, setLabs] = useState([]); // Always initialize as empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -49,18 +49,30 @@ export function LabList({ userId }) {
       console.log('Loading labs for user:', userId);
       const response = await labAPI.getUserLabs(userId);
       console.log('API response:', response);
-      // Ensure we always get an array, even if the API returns unexpected data
-      const labsData = response.data;
+      
+      // Handle the API response format: {data: [...]}
+      let labsData;
+      if (response.data && typeof response.data === 'object') {
+        // If response.data has a 'data' property, use it, otherwise use response.data directly
+        labsData = response.data.data || response.data;
+      } else {
+        // Fallback if response.data is not an object
+        labsData = response.data || [];
+      }
+      
       console.log('Labs data:', labsData, 'Type:', typeof labsData, 'Is array:', Array.isArray(labsData));
+      
+      // CRITICAL FIX: Ensure we always have an array
       if (Array.isArray(labsData)) {
         setLabs(labsData);
+        console.log('✅ Set labs array with', labsData.length, 'items');
       } else {
-        console.warn('API returned non-array data:', labsData);
+        console.warn('⚠️  API returned non-array data:', labsData, 'Setting empty array');
         setLabs([]);
       }
       setError('');
     } catch (err) {
-      console.error('Failed to load labs:', err);
+      console.error('❌ Failed to load labs:', err);
       setError('Failed to load labs');
       setLabs([]); // Ensure labs is always an array even on error
     } finally {
@@ -159,7 +171,7 @@ export function LabList({ userId }) {
     );
   }
 
-  if (labs.length === 0) {
+  if (!Array.isArray(labs) || labs.length === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -190,7 +202,7 @@ export function LabList({ userId }) {
         <div className="flex items-center gap-2">
           <Container className="h-5 w-5" />
           <span className="text-sm text-muted-foreground">
-            {labs.length} lab{labs.length !== 1 ? 's' : ''}
+            {Array.isArray(labs) ? labs.length : 0} lab{(Array.isArray(labs) ? labs.length : 0) !== 1 ? 's' : ''}
           </span>
         </div>
         <Button 
@@ -206,7 +218,7 @@ export function LabList({ userId }) {
       </div>
       
       <div className="grid gap-4">
-        {labs.map((lab) => (
+        {Array.isArray(labs) && labs.length > 0 && labs.map((lab) => (
           <ContextMenu key={lab.id}>
             <ContextMenuTrigger>
               <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">

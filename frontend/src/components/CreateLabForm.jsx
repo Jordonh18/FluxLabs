@@ -62,9 +62,15 @@ export function CreateLabForm() {
   const loadTemplates = async () => {
     try {
       const response = await labAPI.getTemplates();
-      setTemplates(response.data);
-      if (response.data.length > 0) {
-        const firstTemplate = response.data[0];
+      // Handle the API response format: {data: [...]}
+      const templatesData = response.data?.data || response.data;
+      
+      // Ensure we have an array
+      const templatesArray = Array.isArray(templatesData) ? templatesData : [];
+      setTemplates(templatesArray);
+      
+      if (templatesArray.length > 0) {
+        const firstTemplate = templatesArray[0];
         setTemplateId(firstTemplate.id);
         setDuration(firstTemplate.default_duration_hours || 1);
       }
@@ -75,6 +81,12 @@ export function CreateLabForm() {
   };
 
   const filterTemplates = () => {
+    // Ensure templates is an array before filtering
+    if (!Array.isArray(templates)) {
+      setFilteredTemplates([]);
+      return;
+    }
+    
     let filtered = templates;
 
     // Filter by category
@@ -159,7 +171,9 @@ export function CreateLabForm() {
       toast.success('Lab created successfully!', { id: 'create-lab' });
       
       // Navigate using the container ID from the simple Docker response
-      const containerId = response.data.container_id || response.data.id;
+      // Handle the API response format: {data: {...}}
+      const labData = response.data?.data || response.data;
+      const containerId = labData.container_id || labData.id;
       navigate(`/lab/${containerId}`);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create lab', { id: 'create-lab' });
