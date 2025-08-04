@@ -93,12 +93,12 @@ export function LabList({ userId }) {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'running': return 'text-green-600';
-      case 'stopped': return 'text-yellow-600';
-      case 'creating': return 'text-blue-600';
-      case 'error': return 'text-red-600';
-      case 'expired': return 'text-gray-600';
-      default: return 'text-gray-600';
+      case 'running': return 'bg-green-500/10 text-green-400 border-green-500/20';
+      case 'stopped': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+      case 'creating': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'error': return 'bg-red-500/10 text-red-400 border-red-500/20';
+      case 'expired': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
 
@@ -178,7 +178,13 @@ export function LabList({ userId }) {
             {labs.length} lab{labs.length !== 1 ? 's' : ''}
           </span>
         </div>
-        <Button onClick={loadLabs} variant="outline" size="sm" className="flex items-center gap-2">
+        <Button 
+          onClick={loadLabs} 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-2"
+          aria-label="Refresh lab list"
+        >
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
@@ -188,17 +194,23 @@ export function LabList({ userId }) {
         {labs.map((lab) => (
           <ContextMenu key={lab.id}>
             <ContextMenuTrigger>
-              <Card className="hover:shadow-md transition-all duration-200 border-2 hover:border-primary/20">
+              <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-semibold">{lab.name}</h3>
-                    <Badge variant={getStatusVariant(lab.status)} className={getStatusColor(lab.status)}>
-                      {lab.status?.toUpperCase()}
+                    <Badge variant="outline" className={getStatusColor(lab.status)}>
+                      {lab.is_docker_active ? lab.status?.toUpperCase() : 'TERMINATED'}
                     </Badge>
-                    {isExpiringSoon(lab.expires_at) && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-200">
+                    {!lab.is_docker_active && (
+                      <Badge variant="outline" className="bg-gray-500/10 text-gray-400 border-gray-500/20">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        NOT IN DOCKER
+                      </Badge>
+                    )}
+                    {lab.is_docker_active && isExpiringSoon(lab.expires_at) && (
+                      <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20">
                         <AlertTriangle className="h-3 w-3 mr-1" />
                         EXPIRING SOON
                       </Badge>
@@ -209,7 +221,9 @@ export function LabList({ userId }) {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <div className="font-medium">Expires</div>
+                        <div className="font-medium">
+                          {lab.is_docker_active ? 'Expires' : 'Expired'}
+                        </div>
                         <div className="text-muted-foreground">
                           {new Date(lab.expires_at).toLocaleString()}
                         </div>
@@ -219,9 +233,11 @@ export function LabList({ userId }) {
                     <div className="flex items-center gap-2">
                       <Timer className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <div className="font-medium">Time remaining</div>
-                        <div className={`${isExpiringSoon(lab.expires_at) ? 'text-orange-600 font-medium' : 'text-muted-foreground'}`}>
-                          {formatTimeRemaining(lab.expires_at)}
+                        <div className="font-medium">
+                          {lab.is_docker_active ? 'Time remaining' : 'Docker Status'}
+                        </div>
+                        <div className={`${lab.is_docker_active && isExpiringSoon(lab.expires_at) ? 'text-orange-400 font-medium' : 'text-muted-foreground'}`}>
+                          {lab.is_docker_active ? formatTimeRemaining(lab.expires_at) : lab.docker_status}
                         </div>
                       </div>
                     </div>
@@ -242,7 +258,11 @@ export function LabList({ userId }) {
                 
                 <div className="flex items-center gap-2">
                   <Link to={`/lab/${lab.id}`}>
-                    <Button size="sm" className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      className="flex items-center gap-2"
+                      aria-label={`View details for ${lab.name}`}
+                    >
                       <Eye className="h-4 w-4" />
                       View Details
                     </Button>
@@ -250,20 +270,34 @@ export function LabList({ userId }) {
                   
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 w-8 p-0"
+                        aria-label={`Actions for ${lab.name}`}
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleQuickExtend(lab.id, 1)} disabled={lab.status === 'expired' || lab.status === 'error'}>
+                      <DropdownMenuItem 
+                        onClick={() => handleQuickExtend(lab.id, 1)} 
+                        disabled={!lab.is_docker_active || lab.status === 'expired' || lab.status === 'error'}
+                      >
                         <Clock className="mr-2 h-4 w-4" />
                         Extend +1h
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleQuickExtend(lab.id, 2)} disabled={lab.status === 'expired' || lab.status === 'error'}>
+                      <DropdownMenuItem 
+                        onClick={() => handleQuickExtend(lab.id, 2)} 
+                        disabled={!lab.is_docker_active || lab.status === 'expired' || lab.status === 'error'}
+                      >
                         <Clock className="mr-2 h-4 w-4" />
                         Extend +2h
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleQuickExtend(lab.id, 6)} disabled={lab.status === 'expired' || lab.status === 'error'}>
+                      <DropdownMenuItem 
+                        onClick={() => handleQuickExtend(lab.id, 6)} 
+                        disabled={!lab.is_docker_active || lab.status === 'expired' || lab.status === 'error'}
+                      >
                         <Clock className="mr-2 h-4 w-4" />
                         Extend +6h
                       </DropdownMenuItem>
@@ -271,10 +305,10 @@ export function LabList({ userId }) {
                       <DropdownMenuItem 
                         onClick={() => handleQuickTerminate(lab.id)} 
                         className="text-destructive"
-                        disabled={lab.status === 'expired'}
+                        disabled={!lab.is_docker_active}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Terminate
+                        {lab.is_docker_active ? 'Terminate' : 'Remove from List'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -289,26 +323,26 @@ export function LabList({ userId }) {
                 View Details
               </ContextMenuItem>
               <ContextMenuSeparator />
-              {lab.status !== 'expired' && lab.status !== 'error' && (
+              {lab.is_docker_active && lab.status !== 'expired' && lab.status !== 'error' && (
                 <ContextMenuItem onClick={() => handleQuickExtend(lab.id)}>
                   <Clock className="mr-2 h-4 w-4" />
                   Extend +1h
                 </ContextMenuItem>
               )}
-              <ContextMenuItem onClick={() => navigator.clipboard.writeText(lab.container_id || '')}>
-                <Container className="mr-2 h-4 w-4" />
-                Copy Container ID
-              </ContextMenuItem>
-              <ContextMenuSeparator />
-              {lab.status !== 'expired' && (
-                <ContextMenuItem 
-                  onClick={() => handleQuickTerminate(lab.id)} 
-                  className="text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Terminate Lab
+              {lab.container_id && (
+                <ContextMenuItem onClick={() => navigator.clipboard.writeText(lab.container_id || '')}>
+                  <Container className="mr-2 h-4 w-4" />
+                  Copy Container ID
                 </ContextMenuItem>
               )}
+              <ContextMenuSeparator />
+              <ContextMenuItem 
+                onClick={() => handleQuickTerminate(lab.id)} 
+                className="text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {lab.is_docker_active ? 'Terminate Lab' : 'Remove from List'}
+              </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
         ))}

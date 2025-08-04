@@ -30,22 +30,6 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API
-export const authAPI = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
-  register: (email, password) => api.post('/auth/register', { email, password }),
-  verify: () => api.post('/auth/verify'),
-};
-
-// User API
-export const userAPI = {
-  getProfile: (userId) => api.get(`/users/profile/${userId}`),
-  createProfile: (userId, data) => api.post(`/users/profile/${userId}`, data),
-  updateProfile: (userId, data) => api.put(`/users/profile/${userId}`, data),
-  getSettings: (userId) => api.get(`/users/settings/${userId}`),
-  updateSettings: (userId, data) => api.put(`/users/settings/${userId}`, data),
-};
-
 // Docker service for real-time container information
 export const dockerAPI = {
   // Get all containers with FluxLabs labels
@@ -81,7 +65,7 @@ export const labAPI = {
       // Get both database labs and Docker containers
       const [dbLabs, dockerContainers] = await Promise.all([
         api.get(`/labs/user/${userId}`),
-        dockerAPI.getLabContainers().catch(() => ({ data: [] })) // Graceful fallback
+        dockerAPI.getLabContainers()
       ]);
       
       // Create a map of container IDs to Docker data
@@ -175,11 +159,7 @@ export const labAPI = {
   },
 
   // Create lab
-  createLab: (data) => api.post(`/labs?user_id=${data.user_id}`, {
-    name: data.name,
-    template_id: data.template_id,
-    duration_hours: data.duration_hours
-  }),
+  createLab: (labData) => api.post('/labs', labData),
   
   // Terminate lab (both database and Docker)
   terminateLab: async (labId) => {
@@ -204,10 +184,10 @@ export const labAPI = {
   },
   
   // Extend lab
-  extendLab: (labId, additionalHours) => api.post(`/labs/${labId}/extend`, { additional_hours: additionalHours }),
+  extendLab: (labId, hours) => api.post(`/labs/${labId}/extend`, { hours }),
   
   // Get templates
-  getTemplates: () => api.get('/labs/templates'),
+  getTemplates: () => api.get('/templates'),
 };
 
 // Extract SSH connection info from Docker container
@@ -226,16 +206,14 @@ function getSshInfo(container) {
   return null;
 }
 
-// Container management API that uses Docker API
+// Container management API
 export const containerAPI = {
-  getContainer: dockerAPI.getContainer,
   startContainer: dockerAPI.startContainer,
   stopContainer: dockerAPI.stopContainer,
   removeContainer: dockerAPI.removeContainer,
   getContainerLogs: dockerAPI.getContainerLogs,
   getContainerStats: dockerAPI.getContainerStats,
   execCommand: dockerAPI.execCommand,
-  getImages: () => api.get('/containers/images'),
 };
 
 export default api;
