@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
@@ -55,7 +55,7 @@ class TemplateResponse(BaseModel):
     default_duration_hours: int
 
 @app.post("/labs", response_model=LabResponse)
-async def create_lab(lab_data: LabCreate, user_id: int, db: Session = Depends(get_database)):
+async def create_lab(lab_data: LabCreate, user_id: int = Query(...), db: Session = Depends(get_database)):
     try:
         lab = await lab_service.create_lab(
             db=db,

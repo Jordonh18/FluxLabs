@@ -75,8 +75,16 @@ async def proxy_request(request: Request, target_url: str, auth_required: bool =
             
             logger.info(f"Received response from {target_url}: status={response.status_code}")
             
+            # Handle response content safely
+            try:
+                content = response.json() if response.content else {}
+            except Exception as json_error:
+                logger.error(f"Failed to parse JSON response from {target_url}: {str(json_error)}")
+                logger.error(f"Response content: {response.content}")
+                content = {"error": "Invalid response format from service"}
+            
             return JSONResponse(
-                content=response.json() if response.content else {},
+                content=content,
                 status_code=response.status_code,
                 headers=dict(response.headers)
             )
