@@ -232,7 +232,7 @@ export function LabList({ userId }) {
                         <div>
                           <div className="font-medium">Container ID</div>
                           <div className="text-muted-foreground font-mono text-xs">
-                            {lab.container_id.substring(0, 12)}...
+                            {typeof lab.container_id === 'string' ? lab.container_id.substring(0, 12) + '...' : lab.container_id}
                           </div>
                         </div>
                       </div>
