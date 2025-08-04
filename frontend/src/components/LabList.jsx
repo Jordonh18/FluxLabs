@@ -33,7 +33,7 @@ import { labAPI } from '../services/api';
 import { toast } from 'sonner';
 
 export function LabList({ userId }) {
-  const [labs, setLabs] = useState([]); // Always initialize as empty array
+  const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -51,15 +51,7 @@ export function LabList({ userId }) {
       console.log('API response:', response);
       
       // Handle the API response format: {data: [...]}
-      let labsData;
-      if (response.data && typeof response.data === 'object') {
-        // If response.data has a 'data' property, use it, otherwise use response.data directly
-        labsData = response.data.data || response.data;
-      } else {
-        // Fallback if response.data is not an object
-        labsData = response.data || [];
-      }
-      
+      const labsData = response.data?.data || response.data;
       console.log('Labs data:', labsData, 'Type:', typeof labsData, 'Is array:', Array.isArray(labsData));
       
       // CRITICAL FIX: Ensure we always have an array
@@ -67,7 +59,7 @@ export function LabList({ userId }) {
         setLabs(labsData);
         console.log('✅ Set labs array with', labsData.length, 'items');
       } else {
-        console.warn('⚠️  API returned non-array data:', labsData, 'Setting empty array');
+        console.warn('⚠️  API returned non-array data:', labsData);
         setLabs([]);
       }
       setError('');
@@ -171,7 +163,7 @@ export function LabList({ userId }) {
     );
   }
 
-  if (!Array.isArray(labs) || labs.length === 0) {
+  if (labs.length === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -202,7 +194,7 @@ export function LabList({ userId }) {
         <div className="flex items-center gap-2">
           <Container className="h-5 w-5" />
           <span className="text-sm text-muted-foreground">
-            {Array.isArray(labs) ? labs.length : 0} lab{(Array.isArray(labs) ? labs.length : 0) !== 1 ? 's' : ''}
+            {labs.length} lab{labs.length !== 1 ? 's' : ''}
           </span>
         </div>
         <Button 
@@ -218,7 +210,7 @@ export function LabList({ userId }) {
       </div>
       
       <div className="grid gap-4">
-        {Array.isArray(labs) && labs.length > 0 && labs.map((lab) => (
+        {labs.map((lab) => (
           <ContextMenu key={lab.id}>
             <ContextMenuTrigger>
               <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
