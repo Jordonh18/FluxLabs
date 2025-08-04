@@ -25,7 +25,8 @@ export function Profile() {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+              <div className="flex items-center">
                 <img 
                   src="/logo-dark.svg" 
                   alt="FluxLabs" 
@@ -36,8 +37,9 @@ export function Profile() {
                   alt="FluxLabs" 
                   className="h-10 w-10 hidden dark:block"
                 />
-                User Profile
-              </h1>
+              </div>
+              Profile
+            </h1>
               <p className="text-muted-foreground">
                 Manage your account settings and preferences
               </p>

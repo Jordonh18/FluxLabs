@@ -23,7 +23,8 @@ export function CreateLab() {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+              <div className="flex items-center">
                 <img 
                   src="/logo-dark.svg" 
                   alt="FluxLabs" 
@@ -34,8 +35,9 @@ export function CreateLab() {
                   alt="FluxLabs" 
                   className="h-10 w-10 hidden dark:block"
                 />
-                Create New Lab
-              </h1>
+              </div>
+              Create New Lab
+            </h1>
               <p className="text-muted-foreground">
                 Set up a new container environment for your project
               </p>

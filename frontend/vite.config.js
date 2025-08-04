@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
     },
     // Make sure environment variables are available to the client
     define: {
-      'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
+      'import.meta.env.REACT_APP_API_URL': JSON.stringify(env.REACT_APP_API_URL),
     }
   }
 })

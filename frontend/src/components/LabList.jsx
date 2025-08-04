@@ -168,12 +168,12 @@ export function LabList({ userId }) {
             <img 
               src="/logo-dark.svg" 
               alt="FluxLabs" 
-              className="h-12 w-12 text-muted-foreground dark:hidden opacity-50"
+              className="h-16 w-16 text-muted-foreground dark:hidden opacity-50"
             />
             <img 
               src="/logo-light.svg" 
               alt="FluxLabs" 
-              className="h-12 w-12 text-muted-foreground hidden dark:block opacity-50"
+              className="h-16 w-16 text-muted-foreground hidden dark:block opacity-50"
             />
           </div>
           <h3 className="text-lg font-semibold mb-2">No labs found</h3>
