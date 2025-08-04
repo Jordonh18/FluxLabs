@@ -158,8 +158,9 @@ export function CreateLabForm() {
       
       toast.success('Lab created successfully!', { id: 'create-lab' });
       
-      // Redirect to the new lab's details page
-      navigate(`/lab/${response.data.id}`);
+      // Navigate using the container ID from the Docker response
+      const containerId = response.data.Id || response.data.container_id || response.data.id;
+      navigate(`/lab/${containerId}`);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create lab', { id: 'create-lab' });
       setError(err.response?.data?.detail || 'Failed to create lab');

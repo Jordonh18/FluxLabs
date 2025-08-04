@@ -147,7 +147,7 @@ export const labAPI = {
   // Create lab - Docker container only
   createLab: async (data) => {
     try {
-      return await dockerAPI.createContainer({
+      const createResponse = await dockerAPI.createContainer({
         image: data.image || 'ubuntu:latest',
         name: data.name,
         labels: {
@@ -162,6 +162,18 @@ export const labAPI = {
           'fluxlabs.expires_at': new Date(Date.now() + (data.duration_hours || 24) * 60 * 60 * 1000).toISOString()
         }
       });
+      
+      // Ensure response has the correct structure for navigation
+      const containerId = createResponse.data.Id || createResponse.data.container_id || createResponse.data.id;
+      return {
+        data: {
+          id: containerId,
+          container_id: containerId,
+          Id: containerId,
+          name: data.name,
+          status: 'created'
+        }
+      };
     } catch (error) {
       throw error;
     }
