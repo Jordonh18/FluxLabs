@@ -6,12 +6,31 @@ from database import get_database, engine, Base
 from models import Container, AvailableImage
 from docker_client import DockerClient
 import uvicorn
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Create tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+except Exception as e:
+    logger.error(f"Failed to create database tables: {e}")
+    raise
 
 app = FastAPI(title="Container Manager", version="1.0.0")
 docker_client = DockerClient()
+
+logger.info("Container Manager starting up...")
 
 class ContainerCreate(BaseModel):
     image: str

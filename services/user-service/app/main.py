@@ -10,13 +10,33 @@ from crud import (
 import httpx
 import uvicorn
 import os
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Create tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+except Exception as e:
+    logger.error(f"Failed to create database tables: {e}")
+    raise
 
 app = FastAPI(title="User Service", version="1.0.0")
 
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+
+logger.info("User Service starting up...")
+logger.info(f"Auth service URL: {AUTH_SERVICE_URL}")
 
 class UserProfileCreate(BaseModel):
     first_name: Optional[str] = None

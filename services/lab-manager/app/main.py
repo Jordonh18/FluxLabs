@@ -7,12 +7,31 @@ from models import Lab, LabTemplate
 from lab_service import LabService
 from scheduler import scheduler
 import uvicorn
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Create tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+except Exception as e:
+    logger.error(f"Failed to create database tables: {e}")
+    raise
 
 app = FastAPI(title="Lab Manager", version="1.0.0")
 lab_service = LabService()
+
+logger.info("Lab Manager starting up...")
 
 class LabCreate(BaseModel):
     name: str

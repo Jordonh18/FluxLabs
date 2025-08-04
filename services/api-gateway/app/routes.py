@@ -2,6 +2,10 @@ from fastapi import APIRouter, Request, HTTPException, Depends, Header
 from fastapi.responses import JSONResponse
 import httpx
 import os
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -11,12 +15,16 @@ USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user-service:8002")
 CONTAINER_SERVICE_URL = os.getenv("CONTAINER_SERVICE_URL", "http://container-manager:8003")
 LAB_SERVICE_URL = os.getenv("LAB_SERVICE_URL", "http://lab-manager:8004")
 
+logger.info(f"Service URLs configured - AUTH: {AUTH_SERVICE_URL}, USER: {USER_SERVICE_URL}, CONTAINER: {CONTAINER_SERVICE_URL}, LAB: {LAB_SERVICE_URL}")
+
 async def verify_token(authorization: str = Header(None)):
     """Verify JWT token with auth service"""
     if not authorization or not authorization.startswith("Bearer "):
+        logger.warning("Invalid authorization header received")
         raise HTTPException(status_code=401, detail="Invalid authorization header")
     
     token = authorization.split(" ")[1]
+    logger.info(f"Verifying token with auth service")
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
@@ -24,29 +32,39 @@ async def verify_token(authorization: str = Header(None)):
                 headers={"Authorization": f"Bearer {token}"}
             )
             if response.status_code != 200:
+                logger.warning(f"Token verification failed with status: {response.status_code}")
                 raise HTTPException(status_code=401, detail="Invalid token")
             
             data = response.json()
+            logger.info(f"Token verified successfully for user: {data.get('email', 'unknown')}")
             return data["email"]
         except Exception:
             raise HTTPException(status_code=401, detail="Token verification failed")
 
 async def proxy_request(request: Request, target_url: str, auth_required: bool = True):
     """Proxy request to target service"""
+    logger.info(f"Proxying {request.method} request to: {target_url}")
+    
     headers = dict(request.headers)
     
     # Verify authentication if required
     if auth_required:
+        logger.info("Verifying authentication for protected route")
         await verify_token(headers.get("authorization"))
+    else:
+        logger.info("Skipping authentication for public route")
     
     # Remove host header to avoid conflicts
     headers.pop("host", None)
     
     # Get request body
     body = await request.body()
+    if body:
+        logger.info(f"Request body size: {len(body)} bytes")
     
     async with httpx.AsyncClient() as client:
         try:
+            logger.info(f"Sending request to: {target_url}")
             response = await client.request(
                 method=request.method,
                 url=target_url,
@@ -55,13 +73,19 @@ async def proxy_request(request: Request, target_url: str, auth_required: bool =
                 params=request.query_params
             )
             
+            logger.info(f"Received response from {target_url}: status={response.status_code}")
+            
             return JSONResponse(
                 content=response.json() if response.content else {},
                 status_code=response.status_code,
                 headers=dict(response.headers)
             )
+        except httpx.RequestError as e:
+            logger.error(f"Request error when calling {target_url}: {str(e)}")
+            raise HTTPException(status_code=503, detail=f"Service unavailable: {str(e)}")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Service unavailable: {str(e)}")
+            logger.error(f"Unexpected error when calling {target_url}: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Auth routes (no auth required)
 @router.post("/auth/register")
